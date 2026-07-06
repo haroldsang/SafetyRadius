@@ -633,6 +633,35 @@ function App() {
     { label: 'Context', text: `${selectedSimilarCount} similar reports and ${selectedAreaCount} reports in this area match current filters.` },
   ] : []
   const selectedNotes = selectedIncident ? incidentNotes[selectedIncident.id] || [] : []
+  const riskLevel = safetyScore >= 78 ? 'Lower' : safetyScore >= 62 ? 'Moderate' : 'Elevated'
+  const conclusionConfidence = Math.round((averageFieldCompleteness * 0.45) + (coordinateCoverage * 0.35) + (Math.min(visibleIncidents.length, 100) * 0.2))
+  const primaryHotspot = hotspotRows[0]
+  const conclusionItems = [
+    {
+      title: 'Primary pattern',
+      value: dominantOffense,
+      text: `${dominantOffense} is the leading report type in the current filter, with ${topIncidentTypes[0]?.[1] || 0} matching public records.`,
+    },
+    {
+      title: 'Time concentration',
+      value: peakBucket,
+      text: `${peakBucket} has the highest report volume among the selected incidents. Use this band for patrol, commute, or watch-window planning.`,
+    },
+    {
+      title: 'Location concentration',
+      value: primaryHotspot?.[0] || 'No hotspot',
+      text: primaryHotspot ? `${primaryHotspot[0]} appears most often in the filtered records (${primaryHotspot[1]} reports).` : 'No repeated location pattern is visible in the current selection.',
+    },
+    {
+      title: 'Recommended action',
+      value: riskLevel,
+      text: riskLevel === 'Elevated'
+        ? 'Treat this area as a priority review zone and focus on high-severity reports first.'
+        : riskLevel === 'Moderate'
+          ? 'Maintain awareness and monitor repeat areas before changing routes or alert thresholds.'
+          : 'Current filtered data does not show a strong concentration, but source updates should still be monitored.',
+    },
+  ]
 
   function exportReportsCsv() {
     const headers = ['case', 'type', 'severity', 'category', 'area', 'status', 'time', 'source', 'field_completeness', 'updated_on']
@@ -783,6 +812,19 @@ function App() {
           <Bell size={19} />
         </button>
       </header>
+
+      <section className="crime-map-heading" aria-label="Crime map query summary">
+        <div>
+          <span>Crime Map</span>
+          <h1>{CITY_SOURCES[cityKey].label} public safety map</h1>
+          <p>{dataState.source}</p>
+        </div>
+        <div className="crime-map-metrics">
+          <span><strong>{visibleIncidents.length}</strong><small>filtered reports</small></span>
+          <span><strong>{riskLevel}</strong><small>risk level</small></span>
+          <span><strong>{averageFieldCompleteness}%</strong><small>source quality</small></span>
+        </div>
+      </section>
 
       <section id="overview" className="workspace">
         <aside className="control-panel" aria-label="Search and filters">
@@ -1043,6 +1085,30 @@ function App() {
             </article>
           )}
         </section>
+      </section>
+
+      <section className="conclusions-section" aria-label="Analysis conclusions">
+        <div className="conclusions-header">
+          <div>
+            <span className="section-kicker"><Sparkles size={17} /> Analysis conclusions</span>
+            <h2>{riskLevel} risk signal for the current crime map view</h2>
+          </div>
+          <div className="confidence-meter" style={{ '--confidence': `${Math.min(100, conclusionConfidence)}%` }}>
+            <strong>{Math.min(100, conclusionConfidence)}%</strong>
+            <span>confidence</span>
+            <i />
+          </div>
+          <button type="button" onClick={copyAreaBrief}><Copy size={16} /> Copy conclusion</button>
+        </div>
+        <div className="conclusion-grid">
+          {conclusionItems.map((item) => (
+            <article key={item.title} className="conclusion-card">
+              <span>{item.title}</span>
+              <strong>{item.value}</strong>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="analytics-grid" aria-label="Data analysis modules">

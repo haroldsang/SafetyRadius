@@ -124,6 +124,8 @@ p {
   align-items: stretch;
 }
 
+.crime-map-heading,
+.conclusions-section,
 .control-panel,
 .map-stage,
 .trend-panel,
@@ -133,6 +135,61 @@ p {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 18px 50px rgba(31, 44, 58, 0.08);
+}
+
+.crime-map-heading {
+  display: grid;
+  grid-template-columns: 1fr minmax(360px, 0.74fr);
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
+.crime-map-heading span {
+  color: #657380;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.crime-map-heading h1 {
+  margin-top: 4px;
+  color: #132331;
+  font-size: clamp(26px, 3vw, 42px);
+  line-height: 1.05;
+}
+
+.crime-map-heading p {
+  margin-top: 8px;
+  color: #657380;
+  font-weight: 750;
+}
+
+.crime-map-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.crime-map-metrics span {
+  display: grid;
+  gap: 4px;
+  min-height: 76px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f5f8fa;
+}
+
+.crime-map-metrics strong {
+  color: #153f57;
+  font-size: 25px;
+}
+
+.crime-map-metrics small {
+  color: #657380;
+  font-weight: 850;
 }
 
 .control-panel {
@@ -1416,6 +1473,117 @@ p {
   max-height: 430px;
 }
 
+.conclusions-section {
+  margin-top: 14px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, rgba(21, 63, 87, 0.96), rgba(31, 92, 113, 0.92)),
+    #153f57;
+}
+
+.conclusions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.conclusions-header .section-kicker,
+.conclusions-header h2 {
+  color: #ffffff;
+}
+
+.conclusions-header h2 {
+  margin-top: 6px;
+  font-size: clamp(22px, 2vw, 30px);
+}
+
+.conclusions-header button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  padding: 0 13px;
+  color: #153f57;
+  background: #ffffff;
+  font-weight: 900;
+}
+
+.confidence-meter {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 8px;
+  align-items: center;
+  min-width: 150px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: 10px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.confidence-meter strong {
+  font-size: 22px;
+}
+
+.confidence-meter span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.confidence-meter i {
+  grid-column: 1 / -1;
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, #8ee7cf var(--confidence), rgba(255,255,255,0.2) 0);
+}
+
+.conclusion-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.conclusion-card {
+  display: grid;
+  gap: 8px;
+  min-height: 178px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: 14px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.conclusion-card span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.conclusion-card strong {
+  overflow: hidden;
+  font-size: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conclusion-card p {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.48;
+}
+
 .neighborhood-table {
   display: grid;
   gap: 12px;
@@ -1539,6 +1707,11 @@ input:focus-visible {
 }
 
 @media (max-width: 1180px) {
+  .crime-map-heading,
+  .conclusion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .workspace {
     grid-template-columns: minmax(260px, 0.8fr) minmax(420px, 1.2fr);
   }
@@ -1566,8 +1739,16 @@ input:focus-visible {
   }
 
   .workspace,
+  .crime-map-heading,
+  .crime-map-metrics,
+  .conclusion-grid,
   .analytics-grid {
     grid-template-columns: 1fr;
+  }
+
+  .conclusions-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .trend-panel,
