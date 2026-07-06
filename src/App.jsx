@@ -343,6 +343,20 @@ function App() {
     count: visibleIncidents.filter((incident) => incident.timeBucket === bucket).length,
   }))
   const maxBucketCount = Math.max(1, ...timeBuckets.map((bucket) => bucket.count))
+  const categoryCounts = CATEGORIES.filter((item) => item.key !== 'all').map((item) => ({
+    ...item,
+    count: visibleIncidents.filter((incident) => incident.category === item.key).length,
+  }))
+  const arrestCount = visibleIncidents.filter((incident) => incident.status === 'arrest reported').length
+  const arrestRate = visibleIncidents.length ? Math.round((arrestCount / visibleIncidents.length) * 100) : 0
+  const hotspotRows = Object.entries(
+    visibleIncidents.reduce((counts, incident) => {
+      counts[incident.area] = (counts[incident.area] || 0) + 1
+      return counts
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
   const topIncidentTypes = Object.entries(
     visibleIncidents.reduce((counts, incident) => {
       counts[incident.type] = (counts[incident.type] || 0) + 1
@@ -442,20 +456,12 @@ function App() {
             <div>
               <span className="section-kicker"><ShieldCheck size={16} /> Neighborhood score</span>
               <strong>{safetyScore}</strong>
-              <p>Moderate risk, mostly property crime after evening commute hours.</p>
+              <p>{visibleIncidents.length} filtered reports · {highCount} high priority</p>
             </div>
             <div className="score-ring" style={{ '--score': `${safetyScore}%` }} aria-label={`Safety score ${safetyScore} out of 100`}>
               <span>{safetyScore}</span>
             </div>
           </section>
-
-          <div className="insight-card">
-            <span className="section-kicker"><Sparkles size={16} /> AI brief</span>
-            <p>
-              Recent reports cluster around garages, transit exits, and package rooms. The current pattern suggests
-              property risk is highest from 7 PM to midnight within the selected radius.
-            </p>
-          </div>
 
           <div className="mini-analytics">
             <span className="section-kicker"><TrendingUp size={16} /> Live pattern</span>
@@ -466,6 +472,11 @@ function App() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="compact-brief">
+            <span className="section-kicker"><Sparkles size={16} /> Brief</span>
+            <p>Property and public-order reports dominate the current import. Use severity and time filters to narrow the map before opening Google routing.</p>
           </div>
         </aside>
 
@@ -573,8 +584,8 @@ function App() {
         </aside>
       </section>
 
-      <section className="lower-grid">
-        <article className="trend-panel">
+      <section className="analytics-grid" aria-label="Data analysis modules">
+        <article className="analysis-card trend-panel">
           <div className="panel-heading">
             <span><TrendingUp size={17} /> Community comparison</span>
             <small>Last 30 days</small>
@@ -593,7 +604,7 @@ function App() {
           </div>
         </article>
 
-        <article className="risk-panel">
+        <article className="analysis-card risk-panel">
           <div className="panel-heading">
             <span><Clock3 size={17} /> Time risk</span>
             <small>Selected filters</small>
@@ -609,7 +620,51 @@ function App() {
           </div>
         </article>
 
-        <article id="alerts" className="alert-panel">
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><Filter size={17} /> Offense mix</span>
+            <small>{visibleIncidents.length} reports</small>
+          </div>
+          <div className="mix-list">
+            {categoryCounts.map((item) => (
+              <button key={item.key} type="button" onClick={() => setCategory(item.key)}>
+                <span>{item.label}</span>
+                <i style={{ width: `${Math.max(6, (item.count / Math.max(1, visibleIncidents.length)) * 100)}%` }} />
+                <strong>{item.count}</strong>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><Siren size={17} /> Response signal</span>
+            <small>Public records</small>
+          </div>
+          <div className="signal-grid">
+            <span><strong>{arrestRate}%</strong><small>arrest noted</small></span>
+            <span><strong>{highCount}</strong><small>high severity</small></span>
+            <span><strong>{radius} mi</strong><small>watch radius</small></span>
+          </div>
+        </article>
+
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><MapPin size={17} /> Hotspots</span>
+            <small>Top blocks</small>
+          </div>
+          <div className="hotspot-list">
+            {hotspotRows.map(([area, count], index) => (
+              <button key={area} type="button" onClick={() => setSelectedId(visibleIncidents.find((incident) => incident.area === area)?.id)}>
+                <strong>{index + 1}</strong>
+                <span>{area}</span>
+                <em>{count}</em>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <article id="alerts" className="analysis-card alert-panel">
           <span className="section-kicker"><Bell size={16} /> Alert setup</span>
           <h2>Watch this area</h2>
           <p>Subscribe to verified reports within {radius} miles of {query || 'your selected location'}.</p>

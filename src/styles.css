@@ -119,8 +119,8 @@ p {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(280px, 0.78fr) minmax(420px, 1.66fr) minmax(300px, 0.9fr);
-  gap: 18px;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(420px, 1.74fr) minmax(280px, 0.82fr);
+  gap: 14px;
   align-items: stretch;
 }
 
@@ -139,9 +139,9 @@ p {
 .feed-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  min-height: 760px;
-  padding: 14px;
+  gap: 10px;
+  min-height: 660px;
+  padding: 12px;
 }
 
 .search-card,
@@ -150,7 +150,7 @@ p {
 .insight-card {
   border: 1px solid rgba(21, 32, 43, 0.09);
   border-radius: 8px;
-  padding: 14px;
+  padding: 12px;
   background: #ffffff;
 }
 
@@ -312,6 +312,7 @@ p {
 
 .score-card p,
 .insight-card p,
+.compact-brief p,
 .alert-panel p {
   margin-top: 8px;
   color: #5f6f7a;
@@ -339,10 +340,17 @@ p {
   background: #f0faf7;
 }
 
+.compact-brief {
+  border: 1px solid rgba(27, 138, 116, 0.18);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f0faf7;
+}
+
 .mini-analytics {
   border: 1px solid rgba(21, 32, 43, 0.09);
   border-radius: 8px;
-  padding: 14px;
+  padding: 12px;
   background: #ffffff;
 }
 
@@ -381,7 +389,7 @@ p {
   position: relative;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  min-height: 760px;
+  min-height: 660px;
   overflow: hidden;
 }
 
@@ -454,7 +462,7 @@ p {
 
 .map-canvas {
   position: relative;
-  min-height: 520px;
+  min-height: 430px;
   overflow: hidden;
   background:
     linear-gradient(25deg, transparent 0 48%, rgba(255, 255, 255, 0.76) 48.2% 49.2%, transparent 49.4%),
@@ -672,7 +680,7 @@ p {
 
 .incident-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   overflow: auto;
   padding-right: 2px;
 }
@@ -683,7 +691,7 @@ p {
   gap: 10px;
   align-items: center;
   width: 100%;
-  min-height: 78px;
+  min-height: 66px;
   border: 1px solid rgba(21, 32, 43, 0.09);
   border-radius: 8px;
   padding: 11px;
@@ -722,24 +730,29 @@ p {
   font-weight: 850;
 }
 
-.lower-grid {
+.analytics-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.6fr) minmax(320px, 0.65fr);
-  gap: 18px;
-  margin-top: 18px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
 }
 
-.trend-panel,
-.risk-panel,
-.alert-panel {
-  padding: 16px;
-}
-
-.risk-panel {
+.analysis-card {
+  min-height: 190px;
   border: 1px solid rgba(21, 32, 43, 0.1);
   border-radius: 8px;
+  padding: 14px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 18px 50px rgba(31, 44, 58, 0.08);
+}
+
+.trend-panel {
+  grid-column: span 2;
+}
+
+.risk-panel,
+.alert-panel {
+  grid-column: span 2;
 }
 
 .risk-bars {
@@ -770,6 +783,108 @@ p {
 }
 
 .risk-bars strong {
+  text-align: right;
+}
+
+.mix-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.mix-list button {
+  display: grid;
+  grid-template-columns: 96px 1fr 28px;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 10px;
+  color: #33424f;
+  background: #f5f8fa;
+  font-weight: 850;
+}
+
+.mix-list i {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: #153f57;
+}
+
+.mix-list strong {
+  text-align: right;
+}
+
+.signal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.signal-grid span {
+  display: grid;
+  gap: 4px;
+  min-height: 82px;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f5f8fa;
+}
+
+.signal-grid strong {
+  color: #153f57;
+  font-size: 24px;
+}
+
+.signal-grid small {
+  color: #657380;
+  font-weight: 800;
+}
+
+.hotspot-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.hotspot-list button {
+  display: grid;
+  grid-template-columns: 26px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 0 9px;
+  color: #33424f;
+  background: #ffffff;
+  text-align: left;
+}
+
+.hotspot-list strong {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #153f57;
+  font-size: 12px;
+}
+
+.hotspot-list span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+.hotspot-list em {
+  color: #657380;
+  font-style: normal;
+  font-weight: 900;
   text-align: right;
 }
 
@@ -872,8 +987,14 @@ input:focus-visible {
   }
 
   .workspace,
-  .lower-grid {
+  .analytics-grid {
     grid-template-columns: 1fr;
+  }
+
+  .trend-panel,
+  .risk-panel,
+  .alert-panel {
+    grid-column: auto;
   }
 
   .control-panel,
