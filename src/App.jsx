@@ -212,6 +212,38 @@ const CRIME_TERMS = [
   },
 ]
 
+const ANALYST_QUESTIONS = [
+  {
+    question: 'Is this a chronic hotspot or a temporary spike?',
+    why: 'CompStat and crime mapping workflows separate persistent places from short-term surges before assigning resources.',
+  },
+  {
+    question: 'Which time window produces the most actionable patrol value?',
+    why: 'Temporal patterns help avoid spreading patrol attention evenly across low-yield hours.',
+  },
+  {
+    question: 'Are repeat reports tied to place conditions?',
+    why: 'Parking lots, transit stops, commercial corridors, and building lobbies often require different interventions.',
+  },
+  {
+    question: 'Did the filter remove too much context?',
+    why: 'A narrow view can hide related incidents, reporting lag, and nearby displacement patterns.',
+  },
+  {
+    question: 'Is the conclusion supported by reliable source fields?',
+    why: 'Field completeness, geocoding coverage, and source freshness affect confidence.',
+  },
+]
+
+const FUTURE_DIMENSIONS = [
+  'Precinct / district boundaries',
+  'Calls-for-service vs reported crime',
+  'Repeat victim / repeat location indicators',
+  'Clearance and case status trend',
+  'Adjacent-area displacement check',
+  'School, transit, business, and parking-lot overlays',
+]
+
 const WATCH_PROFILES_KEY = 'saferadius_watch_profiles_v1'
 const REVIEWED_INCIDENTS_KEY = 'saferadius_reviewed_incidents_v1'
 const INCIDENT_NOTES_KEY = 'saferadius_incident_notes_v1'
@@ -1326,6 +1358,35 @@ function App() {
         </div>
       </section>
 
+      <section className="analyst-section" aria-label="Analyst questions and recommended dimensions">
+        <div className="analyst-header">
+          <div>
+            <span className="section-kicker"><Filter size={17} /> Analyst questions</span>
+            <h2>Questions a police analyst should ask next</h2>
+            <p>These prompts turn the dashboard from a passive map into a review workflow for supervisors, analysts, and patrol planning staff.</p>
+          </div>
+        </div>
+        <div className="analyst-grid">
+          <article className="question-stack">
+            {ANALYST_QUESTIONS.map((item, index) => (
+              <button key={item.question} type="button">
+                <strong>{String(index + 1).padStart(2, '0')}</strong>
+                <span>{item.question}</span>
+                <small>{item.why}</small>
+              </button>
+            ))}
+          </article>
+          <article className="dimension-card">
+            <span className="section-kicker"><Layers size={17} /> Dimensions to add</span>
+            <div>
+              {FUTURE_DIMENSIONS.map((dimension) => (
+                <button key={dimension} type="button">{dimension}</button>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section id="east-coast" className="powerbi-section" aria-label="East Coast crime analysis dashboard">
         <div className="powerbi-header">
           <div>
@@ -1390,7 +1451,12 @@ function App() {
         </div>
       </section>
 
-      <section className="analytics-grid" aria-label="Data analysis modules">
+      <section className="supporting-section" aria-label="Supporting diagnostics">
+        <div className="supporting-header">
+          <span className="section-kicker"><Layers size={17} /> Supporting diagnostics</span>
+          <h2>Only keep the modules that help explain the operational view</h2>
+        </div>
+        <div className="analytics-grid">
         <article className="analysis-card trend-panel">
           <div className="panel-heading">
             <span><TrendingUp size={17} /> Community comparison</span>
@@ -1657,6 +1723,7 @@ function App() {
             </div>
           )}
         </article>
+        </div>
       </section>
 
       <section id="terms" className="terms-section" aria-label="Crime terms glossary">
