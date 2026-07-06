@@ -7,10 +7,12 @@ import {
   ChevronDown,
   CircleDot,
   Clock3,
+  ExternalLink,
   Filter,
   Home,
   Layers,
   MapPin,
+  Navigation,
   Route,
   Search,
   ShieldCheck,
@@ -130,6 +132,13 @@ const CATEGORIES = [
   { key: 'quality', label: 'Quality of life' },
 ]
 
+const SEVERITIES = [
+  { key: 'all', label: 'All' },
+  { key: 'high', label: 'High' },
+  { key: 'medium', label: 'Medium' },
+  { key: 'low', label: 'Low' },
+]
+
 const severityClass = {
   high: 'severity-high',
   medium: 'severity-medium',
@@ -184,6 +193,16 @@ function formatHour(value) {
   return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
 
+function getTimeBucket(value) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Unknown'
+  const hour = date.getHours()
+  if (hour >= 5 && hour < 12) return 'Morning'
+  if (hour >= 12 && hour < 17) return 'Afternoon'
+  if (hour >= 17 && hour < 22) return 'Evening'
+  return 'Overnight'
+}
+
 function normalizeChicagoIncident(record) {
   const type = record.primary_type || 'Public safety report'
   const category = getIncidentCategory(type)
@@ -200,6 +219,7 @@ function normalizeChicagoIncident(record) {
     category,
     time: formatTimeAgo(record.date),
     hour: formatHour(record.date),
+    timeBucket: getTimeBucket(record.date),
     distance: 'Chicago',
     area: record.block || record.location_description || 'Chicago',
     address: record.location_description || 'Public right of way',
@@ -210,6 +230,23 @@ function normalizeChicagoIncident(record) {
     sourceId: record.case_number,
     updatedOn: record.updated_on,
   }
+}
+
+function getGoogleMapsSearchUrl(value) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value || 'Chicago, IL')}`
+}
+
+function getIncidentLocationQuery(incident) {
+  if (!incident) return 'Chicago, IL'
+  if (Number.isFinite(incident.latitude) && Number.isFinite(incident.longitude)) {
+    return `${incident.latitude},${incident.longitude}`
+  }
+  return `${incident.area || incident.address || 'Chicago'}, Chicago, IL`
+}
+
+function getGoogleMapsDirectionsUrl(origin, incident) {
+  const destination = getIncidentLocationQuery(incident)
+  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin || 'Chicago, IL')}&destination=${encodeURIComponent(destination)}`
 }
 
 function addMapPositions(incidents) {
@@ -238,7 +275,9 @@ function addMapPositions(incidents) {
 function App() {
   const [query, setQuery] = useState('Chicago, IL')
   const [category, setCategory] = useState('all')
+  const [severity, setSeverity] = useState('all')
   const [radius, setRadius] = useState(2)
+  const [showHeatmap, setShowHeatmap] = useState(true)
   const [incidents, setIncidents] = useState(addMapPositions(FALLBACK_INCIDENTS))
   const [dataState, setDataState] = useState({
     label: 'Loading Chicago open crime data',
@@ -282,12 +321,36 @@ function App() {
   }, [])
 
   const visibleIncidents = useMemo(() => {
-    return incidents.filter((incident) => category === 'all' || incident.category === category)
-  }, [category, incidents])
+    return incidents.filter((incident) => {
+      const categoryMatch = category === 'all' || incident.category === category
+      const severityMatch = severity === 'all' || incident.severity === severity
+      return categoryMatch && severityMatch
+    })
+  }, [category, incidents, severity])
 
   const selectedIncident = visibleIncidents.find((incident) => incident.id === selectedId) || visibleIncidents[0]
   const highCount = visibleIncidents.filter((incident) => incident.severity === 'high').length
   const safetyScore = Math.max(48, 86 - visibleIncidents.length * 3 - highCount * 5)
+  const mapSearchUrl = getGoogleMapsSearchUrl(query)
+  const selectedMapsUrl = getGoogleMapsSearchUrl(getIncidentLocationQuery(selectedIncident))
+  const selectedDirectionsUrl = getGoogleMapsDirectionsUrl(query, selectedIncident)
+  const severityCounts = SEVERITIES.filter((item) => item.key !== 'all').map((item) => ({
+    ...item,
+    count: visibleIncidents.filter((incident) => incident.severity === item.key).length,
+  }))
+  const timeBuckets = ['Morning', 'Afternoon', 'Evening', 'Overnight'].map((bucket) => ({
+    label: bucket,
+    count: visibleIncidents.filter((incident) => incident.timeBucket === bucket).length,
+  }))
+  const maxBucketCount = Math.max(1, ...timeBuckets.map((bucket) => bucket.count))
+  const topIncidentTypes = Object.entries(
+    visibleIncidents.reduce((counts, incident) => {
+      counts[incident.type] = (counts[incident.type] || 0) + 1
+      return counts
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
 
   return (
     <main className="app-shell">
@@ -319,6 +382,14 @@ function App() {
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="City, address, or ZIP"
               />
+            </div>
+            <div className="address-actions">
+              <a href={mapSearchUrl} target="_blank" rel="noreferrer">
+                <ExternalLink size={16} /> Open in Google Maps
+              </a>
+              <a href={selectedDirectionsUrl} target="_blank" rel="noreferrer">
+                <Navigation size={16} /> Route to selected report
+              </a>
             </div>
           </div>
 
@@ -353,6 +424,18 @@ function App() {
                 onChange={(event) => setRadius(Number(event.target.value))}
               />
             </label>
+            <div className="severity-filter" aria-label="Severity filter">
+              {SEVERITIES.map((item) => (
+                <button
+                  className={severity === item.key ? 'active' : ''}
+                  key={item.key}
+                  type="button"
+                  onClick={() => setSeverity(item.key)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <section id="score" className="score-card">
@@ -373,20 +456,41 @@ function App() {
               property risk is highest from 7 PM to midnight within the selected radius.
             </p>
           </div>
+
+          <div className="mini-analytics">
+            <span className="section-kicker"><TrendingUp size={16} /> Live pattern</span>
+            <div className="type-cloud">
+              {topIncidentTypes.map(([type, count]) => (
+                <button key={type} type="button" onClick={() => setCategory('all')}>
+                  {type}<strong>{count}</strong>
+                </button>
+              ))}
+            </div>
+          </div>
         </aside>
 
         <section id="map" className="map-stage" aria-label="Incident map">
           <div className="map-toolbar">
             <div>
-            <span>Live area overview</span>
-            <strong>{query || 'Selected area'}</strong>
+              <span>Live area overview</span>
+              <strong>{query || 'Selected area'}</strong>
               <small>{dataState.label}</small>
-          </div>
-            <button type="button">
+            </div>
+            <button type="button" onClick={() => setShowHeatmap((value) => !value)} aria-pressed={showHeatmap}>
               <Layers size={17} />
-              Heatmap
+              {showHeatmap ? 'Heatmap on' : 'Heatmap off'}
               <ChevronDown size={16} />
             </button>
+          </div>
+
+          <div className="map-stats" aria-label="Current map statistics">
+            {severityCounts.map((item) => (
+              <button key={item.key} type="button" onClick={() => setSeverity(item.key)}>
+                <span className={`stat-dot ${severityClass[item.key]}`} />
+                <strong>{item.count}</strong>
+                <small>{item.label}</small>
+              </button>
+            ))}
           </div>
 
           <div className="map-canvas">
@@ -395,9 +499,13 @@ function App() {
             <span className="street street-c" />
             <span className="street street-d" />
             <span className="route-line"><Route size={16} /> Market corridor</span>
-            <span className="heat heat-one" />
-            <span className="heat heat-two" />
-            <span className="heat heat-three" />
+            {showHeatmap && (
+              <>
+                <span className="heat heat-one" />
+                <span className="heat heat-two" />
+                <span className="heat heat-three" />
+              </>
+            )}
 
             {visibleIncidents.map((incident) => (
               <button
@@ -426,6 +534,10 @@ function App() {
                 <div><dt>Status</dt><dd>{selectedIncident.status}</dd></div>
                 {selectedIncident.sourceId && <div><dt>Case</dt><dd>{selectedIncident.sourceId}</dd></div>}
               </dl>
+              <div className="drawer-actions">
+                <a href={selectedMapsUrl} target="_blank" rel="noreferrer"><MapPin size={16} /> View location</a>
+                <a href={selectedDirectionsUrl} target="_blank" rel="noreferrer"><Navigation size={16} /> Directions</a>
+              </div>
             </article>
           )}
         </section>
@@ -481,13 +593,29 @@ function App() {
           </div>
         </article>
 
+        <article className="risk-panel">
+          <div className="panel-heading">
+            <span><Clock3 size={17} /> Time risk</span>
+            <small>Selected filters</small>
+          </div>
+          <div className="risk-bars">
+            {timeBuckets.map((bucket) => (
+              <button key={bucket.label} type="button" onClick={() => setSeverity('all')}>
+                <span>{bucket.label}</span>
+                <i style={{ width: `${Math.max(8, (bucket.count / maxBucketCount) * 100)}%` }} />
+                <strong>{bucket.count}</strong>
+              </button>
+            ))}
+          </div>
+        </article>
+
         <article id="alerts" className="alert-panel">
           <span className="section-kicker"><Bell size={16} /> Alert setup</span>
           <h2>Watch this area</h2>
           <p>Subscribe to verified reports within {radius} miles of {query || 'your selected location'}.</p>
           <div className="alert-actions">
             <button type="button"><Home size={17} /> Save address</button>
-            <button type="button"><Clock3 size={17} /> Quiet hours</button>
+            <a href={mapSearchUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> Google address</a>
           </div>
         </article>
       </section>

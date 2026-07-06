@@ -5,9 +5,10 @@ SafeRadius is a web MVP for community safety intelligence. It is inspired by Cit
 ## Current prototype
 
 - Incident map with live Chicago open-data import, severity pins, heat areas, and selected incident detail.
-- Nearby incident feed with category filtering.
+- Nearby incident feed with category and severity filtering.
+- Google Maps links for searched addresses, selected report locations, and directions.
 - Neighborhood safety score and AI-style summary placeholder.
-- Community comparison panel.
+- Community comparison and time-risk panels.
 - Area watch and alert setup UI.
 
 ## Run locally
