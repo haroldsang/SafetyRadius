@@ -34,6 +34,16 @@ const CITY_SOURCES = {
     source: 'Los Angeles Open Data: Crime Data from 2020 to Present',
     api: 'https://data.lacity.org/resource/2nrs-mtv8.json?$limit=120&$order=date_occ DESC&$where=lat > 0 AND lon < 0',
   },
+  newYork: {
+    label: 'New York, NY',
+    source: 'NYC Open Data: NYPD Complaint Data Current Year To Date',
+    api: 'https://data.cityofnewyork.us/resource/5uac-w243.json?$limit=120&$order=cmplnt_fr_dt DESC&$where=latitude IS NOT NULL AND longitude IS NOT NULL',
+  },
+  sanFrancisco: {
+    label: 'San Francisco, CA',
+    source: 'DataSF: Police Department Incident Reports',
+    api: 'https://data.sfgov.org/resource/wg3w-h783.json?$limit=120&$order=incident_datetime DESC&$where=latitude IS NOT NULL AND longitude IS NOT NULL',
+  },
 }
 
 const FALLBACK_INCIDENTS = [
@@ -281,8 +291,66 @@ function normalizeLosAngelesIncident(record) {
   }
 }
 
+function normalizeNewYorkIncident(record) {
+  const type = record.ofns_desc || record.pd_desc || 'Public safety report'
+  const latitude = Number(record.latitude)
+  const longitude = Number(record.longitude)
+
+  return {
+    id: `nyc-${record.cmplnt_num}`,
+    type: type
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase()),
+    severity: getIncidentSeverity(`${type} ${record.law_cat_cd || ''}`),
+    category: getIncidentCategory(type),
+    time: formatTimeAgo(record.cmplnt_fr_dt),
+    hour: record.cmplnt_fr_tm || formatHour(record.cmplnt_fr_dt),
+    timeBucket: getTimeBucket(`${record.cmplnt_fr_dt || ''}T${record.cmplnt_fr_tm || '00:00:00'}`),
+    occurredAt: record.cmplnt_fr_dt,
+    distance: 'New York',
+    area: record.boro_nm || record.patrol_boro || 'New York',
+    address: record.prem_typ_desc || record.loc_of_occur_desc || 'Public record location',
+    status: record.crm_atpt_cptd_cd || record.law_cat_cd || 'reported',
+    summary: `${type} reported in ${record.boro_nm || 'New York'}${record.prem_typ_desc ? ` near ${record.prem_typ_desc.toLowerCase()}` : ''}.`,
+    latitude,
+    longitude,
+    sourceId: record.cmplnt_num,
+    updatedOn: record.rpt_dt,
+  }
+}
+
+function normalizeSanFranciscoIncident(record) {
+  const type = record.incident_category || record.incident_description || 'Public safety report'
+  const latitude = Number(record.latitude)
+  const longitude = Number(record.longitude)
+
+  return {
+    id: `sf-${record.row_id || record.incident_id}`,
+    type: type
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase()),
+    severity: getIncidentSeverity(`${type} ${record.incident_description || ''}`),
+    category: getIncidentCategory(type),
+    time: formatTimeAgo(record.incident_datetime),
+    hour: record.incident_time || formatHour(record.incident_datetime),
+    timeBucket: getTimeBucket(record.incident_datetime),
+    occurredAt: record.incident_datetime,
+    distance: 'San Francisco',
+    area: record.analysis_neighborhood || record.police_district || 'San Francisco',
+    address: record.intersection || record.incident_subcategory || 'Public record location',
+    status: record.resolution || record.report_type_description || 'reported',
+    summary: `${record.incident_description || type} reported in ${record.analysis_neighborhood || record.police_district || 'San Francisco'}.`,
+    latitude,
+    longitude,
+    sourceId: record.incident_number || record.incident_id,
+    updatedOn: record.data_as_of || record.report_datetime,
+  }
+}
+
 function normalizeIncident(record, cityKey) {
   if (cityKey === 'losAngeles') return normalizeLosAngelesIncident(record)
+  if (cityKey === 'newYork') return normalizeNewYorkIncident(record)
+  if (cityKey === 'sanFrancisco') return normalizeSanFranciscoIncident(record)
   return normalizeChicagoIncident(record)
 }
 
@@ -489,6 +557,11 @@ function App() {
   const selectedAreaCount = selectedIncident
     ? visibleIncidents.filter((incident) => incident.area === selectedIncident.area).length
     : 0
+  const selectedTimeline = selectedIncident
+    ? visibleIncidents
+      .filter((incident) => incident.area === selectedIncident.area || incident.type === selectedIncident.type)
+      .slice(0, 5)
+    : []
 
   function exportReportsCsv() {
     const headers = ['case', 'type', 'severity', 'category', 'area', 'status', 'time', 'source']
@@ -879,6 +952,34 @@ function App() {
 
         <article className="analysis-card">
           <div className="panel-heading">
+            <span><ShieldCheck size={17} /> Source coverage</span>
+            <small>{Object.keys(CITY_SOURCES).length} cities</small>
+          </div>
+          <div className="source-grid">
+            {Object.entries(CITY_SOURCES).map(([key, city]) => (
+              <button
+                className={cityKey === key ? 'active' : ''}
+                key={key}
+                type="button"
+                onClick={() => {
+                  setCityKey(key)
+                  setQuery(city.label)
+                  setCategory('all')
+                  setSeverity('all')
+                  setDateWindow('all')
+                  setQuickView('all')
+                  setReportQuery('')
+                }}
+              >
+                <strong>{city.label.split(',')[0]}</strong>
+                <small>{cityKey === key ? 'active' : 'available'}</small>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <article className="analysis-card">
+          <div className="panel-heading">
             <span><Route size={17} /> Density grid</span>
             <small>Map cells</small>
           </div>
@@ -906,6 +1007,24 @@ function App() {
             <span><strong>{dominantOffense}</strong><small>dominant offense</small></span>
             <span><strong>{peakBucket}</strong><small>peak time band</small></span>
             <span><strong>{selectedIncident?.area || 'No selection'}</strong><small>selected report area</small></span>
+          </div>
+        </article>
+
+        <article className="analysis-card timeline-card">
+          <div className="panel-heading">
+            <span><Clock3 size={17} /> Related timeline</span>
+            <small>Selected report</small>
+          </div>
+          <div className="related-timeline">
+            {selectedTimeline.map((incident) => (
+              <button key={incident.id} type="button" onClick={() => setSelectedId(incident.id)}>
+                <i className={severityClass[incident.severity]} />
+                <span>
+                  <strong>{incident.type}</strong>
+                  <small>{incident.area} · {incident.time}</small>
+                </span>
+              </button>
+            ))}
           </div>
         </article>
 
