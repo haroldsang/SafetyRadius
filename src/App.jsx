@@ -498,6 +498,13 @@ function App() {
     }
   }, [cityKey])
 
+  useEffect(() => {
+    const incidentFromHash = window.location.hash.replace('#incident=', '')
+    if (incidentFromHash && incidents.some((incident) => incident.id === incidentFromHash)) {
+      setSelectedId(incidentFromHash)
+    }
+  }, [incidents])
+
   const importedAreaCounts = useMemo(() => incidents.reduce((counts, incident) => {
     counts[incident.area] = (counts[incident.area] || 0) + 1
     return counts
@@ -691,6 +698,12 @@ function App() {
     setReportSort('recent')
   }
 
+  function selectIncident(id) {
+    if (!id) return
+    setSelectedId(id)
+    window.history.replaceState(null, '', `#incident=${id}`)
+  }
+
   function clearLocalWorkflow() {
     setReviewedIncidents({})
     setIncidentNotes({})
@@ -725,7 +738,8 @@ function App() {
 
   async function copySelectedIncidentLink() {
     if (!selectedIncident) return
-    const text = `${selectedIncident.type} near ${selectedIncident.area} (${selectedIncident.time})\n${selectedIncident.summary}\n${getGoogleMapsSearchUrl(getIncidentLocationQuery(selectedIncident))}`
+    const permalink = `${window.location.origin}${window.location.pathname}#incident=${selectedIncident.id}`
+    const text = `${selectedIncident.type} near ${selectedIncident.area} (${selectedIncident.time})\n${selectedIncident.summary}\n${permalink}\n${getGoogleMapsSearchUrl(getIncidentLocationQuery(selectedIncident))}`
     try {
       await navigator.clipboard.writeText(text)
       setCopyMessage('Copied incident summary')
@@ -823,7 +837,7 @@ function App() {
                   type="button"
                 onClick={() => {
                   setCategory(item.key)
-                    setSelectedId(incidents.find((incident) => item.key === 'all' || incident.category === item.key)?.id)
+                    selectIncident(incidents.find((incident) => item.key === 'all' || incident.category === item.key)?.id)
                 }}
               >
                   {item.label}
@@ -964,7 +978,9 @@ function App() {
                 key={incident.id}
                 style={{ left: `${incident.x}%`, top: `${incident.y}%` }}
                 type="button"
-                onClick={() => setSelectedId(incident.id)}
+                onClick={() => {
+                  selectIncident(incident.id)
+                }}
                 aria-label={`${incident.type} near ${incident.area}`}
               >
                 {incident.category === 'property' ? <Car size={16} /> : incident.category === 'violent' ? <Siren size={16} /> : <CircleDot size={16} />}
@@ -1132,7 +1148,7 @@ function App() {
           </div>
           <div className="hotspot-list">
             {hotspotRows.map(([area, count], index) => (
-              <button key={area} type="button" onClick={() => setSelectedId(visibleIncidents.find((incident) => incident.area === area)?.id)}>
+              <button key={area} type="button" onClick={() => selectIncident(visibleIncidents.find((incident) => incident.area === area)?.id)}>
                 <strong>{index + 1}</strong>
                 <span>{area}</span>
                 <em>{count}</em>
@@ -1224,7 +1240,13 @@ function App() {
           </div>
           <div className="related-timeline">
             {selectedTimeline.map((incident) => (
-              <button key={incident.id} type="button" onClick={() => setSelectedId(incident.id)}>
+              <button
+                key={incident.id}
+                type="button"
+                onClick={() => {
+                  selectIncident(incident.id)
+                }}
+              >
                 <i className={severityClass[incident.severity]} />
                 <span>
                   <strong>{incident.type}</strong>
@@ -1328,7 +1350,9 @@ function App() {
               className={`${selectedIncident?.id === incident.id ? 'incident-item selected' : 'incident-item'} ${reviewedIncidents[incident.id] ? 'reviewed' : ''}`}
               key={incident.id}
               type="button"
-              onClick={() => setSelectedId(incident.id)}
+              onClick={() => {
+                selectIncident(incident.id)
+              }}
             >
               <span className={`item-icon ${severityClass[incident.severity]}`}>
                 {incident.category === 'property' ? <Car size={18} /> : incident.category === 'violent' ? <AlertTriangle size={18} /> : <MapPin size={18} />}
