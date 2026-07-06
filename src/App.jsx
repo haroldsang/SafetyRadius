@@ -682,6 +682,24 @@ function App() {
     setQuickView(profile.quickView)
   }
 
+  function resetFilters() {
+    setCategory('all')
+    setSeverity('all')
+    setDateWindow('all')
+    setQuickView('all')
+    setReportQuery('')
+    setReportSort('recent')
+  }
+
+  function clearLocalWorkflow() {
+    setReviewedIncidents({})
+    setIncidentNotes({})
+    setWatchProfiles([])
+    localStorage.removeItem(REVIEWED_INCIDENTS_KEY)
+    localStorage.removeItem(INCIDENT_NOTES_KEY)
+    localStorage.removeItem(WATCH_PROFILES_KEY)
+  }
+
   function markSelectedReviewed() {
     if (!selectedIncident) return
     const nextReviewed = { ...reviewedIncidents, [selectedIncident.id]: true }
@@ -795,7 +813,7 @@ function App() {
           <div className="filter-group">
             <div className="panel-heading">
               <span><Filter size={17} /> Filters</span>
-              <button type="button" aria-label="Advanced filters"><SlidersHorizontal size={17} /></button>
+              <button type="button" onClick={resetFilters} aria-label="Reset filters"><SlidersHorizontal size={17} /></button>
             </div>
             <div className="category-grid">
               {CATEGORIES.map((item) => (
@@ -1232,7 +1250,7 @@ function App() {
         <article className="analysis-card">
           <div className="panel-heading">
             <span><CheckCircle2 size={17} /> Review queue</span>
-            <small>Local workflow</small>
+            <button className="panel-action" type="button" onClick={clearLocalWorkflow}>Clear</button>
           </div>
           <div className="signal-grid">
             <span><strong>{unreviewedHighCount}</strong><small>unreviewed high</small></span>
