@@ -119,24 +119,23 @@ p {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(260px, 0.72fr) minmax(420px, 1.74fr) minmax(280px, 0.82fr);
+  grid-template-columns: minmax(280px, 0.62fr) minmax(520px, 1.8fr);
   gap: 14px;
   align-items: stretch;
 }
 
 .control-panel,
-.feed-panel,
 .map-stage,
 .trend-panel,
-.alert-panel {
+.alert-panel,
+.reports-section {
   border: 1px solid rgba(21, 32, 43, 0.1);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 18px 50px rgba(31, 44, 58, 0.08);
 }
 
-.control-panel,
-.feed-panel {
+.control-panel {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -888,6 +887,56 @@ p {
   text-align: right;
 }
 
+.summary-stack {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.summary-stack span {
+  display: grid;
+  gap: 3px;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f5f8fa;
+}
+
+.summary-stack strong {
+  overflow: hidden;
+  color: #153f57;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary-stack small {
+  color: #657380;
+  font-weight: 850;
+}
+
+.reports-section {
+  margin-top: 14px;
+  padding: 14px;
+}
+
+.reports-header {
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, 420px);
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.reports-header h2 {
+  margin-top: 6px;
+  font-size: 24px;
+}
+
+.reports-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-height: 430px;
+}
+
 .neighborhood-table {
   display: grid;
   gap: 12px;
@@ -959,12 +1008,7 @@ input:focus-visible {
     grid-template-columns: minmax(260px, 0.8fr) minmax(420px, 1.2fr);
   }
 
-  .feed-panel {
-    grid-column: 1 / -1;
-    min-height: 0;
-  }
-
-  .incident-list {
+  .reports-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1008,6 +1052,7 @@ input:focus-visible {
 
   .incident-drawer,
   .incident-drawer dl,
+  .reports-header,
   .incident-list,
   .neighborhood-row {
     grid-template-columns: 1fr;

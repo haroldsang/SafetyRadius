@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   Bell,
@@ -349,6 +349,9 @@ function App() {
   }))
   const arrestCount = visibleIncidents.filter((incident) => incident.status === 'arrest reported').length
   const arrestRate = visibleIncidents.length ? Math.round((arrestCount / visibleIncidents.length) * 100) : 0
+  const coordinateCoverage = visibleIncidents.length
+    ? Math.round((visibleIncidents.filter((incident) => Number.isFinite(incident.latitude) && Number.isFinite(incident.longitude)).length / visibleIncidents.length) * 100)
+    : 0
   const hotspotRows = Object.entries(
     visibleIncidents.reduce((counts, incident) => {
       counts[incident.area] = (counts[incident.area] || 0) + 1
@@ -365,6 +368,8 @@ function App() {
   )
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4)
+  const dominantOffense = topIncidentTypes[0]?.[0] || 'No reports'
+  const peakBucket = [...timeBuckets].sort((a, b) => b.count - a.count)[0]?.label || 'Unknown'
 
   return (
     <main className="app-shell">
@@ -552,36 +557,6 @@ function App() {
             </article>
           )}
         </section>
-
-        <aside id="feed" className="feed-panel" aria-label="Incident feed">
-          <div className="panel-heading feed-heading">
-            <span><CalendarClock size={17} /> Nearby incident feed</span>
-            <small>{visibleIncidents.length} reports</small>
-          </div>
-          <div className="source-note">
-            <strong>{dataState.source}</strong>
-            <span>{dataState.updatedAt ? `Latest update: ${dataState.updatedAt}` : 'Live public-data import'}</span>
-          </div>
-          <div className="incident-list">
-            {visibleIncidents.map((incident) => (
-              <button
-                className={selectedIncident?.id === incident.id ? 'incident-item selected' : 'incident-item'}
-                key={incident.id}
-                type="button"
-                onClick={() => setSelectedId(incident.id)}
-              >
-                <span className={`item-icon ${severityClass[incident.severity]}`}>
-                  {incident.category === 'property' ? <Car size={18} /> : incident.category === 'violent' ? <AlertTriangle size={18} /> : <MapPin size={18} />}
-                </span>
-                <span>
-                  <strong>{incident.type}</strong>
-                  <small>{incident.area} · {incident.distance}</small>
-                </span>
-                <em>{incident.time}</em>
-              </button>
-            ))}
-          </div>
-        </aside>
       </section>
 
       <section className="analytics-grid" aria-label="Data analysis modules">
@@ -664,6 +639,30 @@ function App() {
           </div>
         </article>
 
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><Layers size={17} /> Data quality</span>
+            <small>Import health</small>
+          </div>
+          <div className="signal-grid">
+            <span><strong>{coordinateCoverage}%</strong><small>mapped</small></span>
+            <span><strong>{hotspotRows.length}</strong><small>top areas</small></span>
+            <span><strong>{visibleIncidents.length}</strong><small>records</small></span>
+          </div>
+        </article>
+
+        <article className="analysis-card summary-panel">
+          <div className="panel-heading">
+            <span><Sparkles size={17} /> Pattern summary</span>
+            <small>Current filter</small>
+          </div>
+          <div className="summary-stack">
+            <span><strong>{dominantOffense}</strong><small>dominant offense</small></span>
+            <span><strong>{peakBucket}</strong><small>peak time band</small></span>
+            <span><strong>{selectedIncident?.area || 'No selection'}</strong><small>selected report area</small></span>
+          </div>
+        </article>
+
         <article id="alerts" className="analysis-card alert-panel">
           <span className="section-kicker"><Bell size={16} /> Alert setup</span>
           <h2>Watch this area</h2>
@@ -673,6 +672,38 @@ function App() {
             <a href={mapSearchUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> Google address</a>
           </div>
         </article>
+      </section>
+
+      <section id="feed" className="reports-section" aria-label="Incident reports">
+        <div className="reports-header">
+          <div>
+            <span className="section-kicker"><CalendarClock size={17} /> Incident reports</span>
+            <h2>Filtered public reports</h2>
+          </div>
+          <div className="source-note">
+            <strong>{dataState.source}</strong>
+            <span>{dataState.updatedAt ? `Latest update: ${dataState.updatedAt}` : 'Live public-data import'}</span>
+          </div>
+        </div>
+        <div className="incident-list reports-list">
+          {visibleIncidents.map((incident) => (
+            <button
+              className={selectedIncident?.id === incident.id ? 'incident-item selected' : 'incident-item'}
+              key={incident.id}
+              type="button"
+              onClick={() => setSelectedId(incident.id)}
+            >
+              <span className={`item-icon ${severityClass[incident.severity]}`}>
+                {incident.category === 'property' ? <Car size={18} /> : incident.category === 'violent' ? <AlertTriangle size={18} /> : <MapPin size={18} />}
+              </span>
+              <span>
+                <strong>{incident.type}</strong>
+                <small>{incident.area} · {incident.distance} · {incident.status}</small>
+              </span>
+              <em>{incident.time}</em>
+            </button>
+          ))}
+        </div>
       </section>
     </main>
   )
