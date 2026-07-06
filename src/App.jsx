@@ -22,8 +22,18 @@ import {
   TrendingUp,
 } from 'lucide-react'
 
-const CHICAGO_CRIME_API =
-  'https://data.cityofchicago.org/resource/ijzp-q8t2.json?$limit=120&$order=date DESC&$where=latitude IS NOT NULL AND longitude IS NOT NULL'
+const CITY_SOURCES = {
+  chicago: {
+    label: 'Chicago, IL',
+    source: 'Chicago Data Portal: Crimes - 2001 to Present',
+    api: 'https://data.cityofchicago.org/resource/ijzp-q8t2.json?$limit=120&$order=date DESC&$where=latitude IS NOT NULL AND longitude IS NOT NULL',
+  },
+  losAngeles: {
+    label: 'Los Angeles, CA',
+    source: 'Los Angeles Open Data: Crime Data from 2020 to Present',
+    api: 'https://data.lacity.org/resource/2nrs-mtv8.json?$limit=120&$order=date_occ DESC&$where=lat > 0 AND lon < 0',
+  },
+}
 
 const FALLBACK_INCIDENTS = [
   {
@@ -164,14 +174,16 @@ const propertyTypes = new Set([
 ])
 
 function getIncidentCategory(type = '') {
-  if (violentTypes.has(type)) return 'violent'
-  if (propertyTypes.has(type)) return 'property'
+  const normalized = type.toUpperCase()
+  if (violentTypes.has(normalized) || ['ASSAULT', 'BATTERY', 'ROBBERY', 'HOMICIDE', 'WEAPON'].some((term) => normalized.includes(term))) return 'violent'
+  if (propertyTypes.has(normalized) || ['THEFT', 'BURGLARY', 'STOLEN', 'VANDALISM', 'ARSON', 'VEHICLE'].some((term) => normalized.includes(term))) return 'property'
   return 'quality'
 }
 
 function getIncidentSeverity(type = '') {
-  if (['HOMICIDE', 'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'WEAPONS VIOLATION'].includes(type)) return 'high'
-  if (['ASSAULT', 'BATTERY', 'BURGLARY', 'MOTOR VEHICLE THEFT', 'ARSON'].includes(type)) return 'medium'
+  const normalized = type.toUpperCase()
+  if (['HOMICIDE', 'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'WEAPONS VIOLATION'].some((term) => normalized.includes(term))) return 'high'
+  if (['ASSAULT', 'BATTERY', 'BURGLARY', 'MOTOR VEHICLE THEFT', 'ARSON', 'VEHICLE'].some((term) => normalized.includes(term))) return 'medium'
   return 'low'
 }
 
@@ -233,6 +245,39 @@ function normalizeChicagoIncident(record) {
   }
 }
 
+function normalizeLosAngelesIncident(record) {
+  const type = record.crm_cd_desc || 'Public safety report'
+  const latitude = Number(record.lat)
+  const longitude = Number(record.lon)
+
+  return {
+    id: `la-${record.dr_no}`,
+    type: type
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase()),
+    severity: getIncidentSeverity(type),
+    category: getIncidentCategory(type),
+    time: formatTimeAgo(record.date_occ),
+    hour: formatHour(record.date_occ),
+    timeBucket: getTimeBucket(record.date_occ),
+    occurredAt: record.date_occ,
+    distance: 'Los Angeles',
+    area: record.area_name || record.location || 'Los Angeles',
+    address: record.location || record.premis_desc || 'Public record location',
+    status: record.status_desc || record.status || 'reported',
+    summary: `${type} reported in ${record.area_name || 'Los Angeles'}${record.premis_desc ? ` near ${record.premis_desc.toLowerCase()}` : ''}.`,
+    latitude,
+    longitude,
+    sourceId: record.dr_no,
+    updatedOn: record.date_rptd,
+  }
+}
+
+function normalizeIncident(record, cityKey) {
+  if (cityKey === 'losAngeles') return normalizeLosAngelesIncident(record)
+  return normalizeChicagoIncident(record)
+}
+
 function getGoogleMapsSearchUrl(value) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value || 'Chicago, IL')}`
 }
@@ -274,6 +319,7 @@ function addMapPositions(incidents) {
 }
 
 function App() {
+  const [cityKey, setCityKey] = useState('chicago')
   const [query, setQuery] = useState('Chicago, IL')
   const [category, setCategory] = useState('all')
   const [severity, setSeverity] = useState('all')
@@ -283,8 +329,8 @@ function App() {
   const [reportSort, setReportSort] = useState('recent')
   const [incidents, setIncidents] = useState(addMapPositions(FALLBACK_INCIDENTS))
   const [dataState, setDataState] = useState({
-    label: 'Loading Chicago open crime data',
-    source: 'Chicago Data Portal',
+    label: 'Loading public crime data',
+    source: CITY_SOURCES.chicago.source,
     updatedAt: '',
   })
   const [selectedId, setSelectedId] = useState(FALLBACK_INCIDENTS[0].id)
@@ -292,19 +338,25 @@ function App() {
   useEffect(() => {
     let isMounted = true
 
-    async function loadChicagoCrimeData() {
+    async function loadCrimeData() {
+      const city = CITY_SOURCES[cityKey]
       try {
-        const response = await fetch(CHICAGO_CRIME_API)
-        if (!response.ok) throw new Error(`Chicago API returned ${response.status}`)
+        setDataState({
+          label: `Loading ${city.label} public reports`,
+          source: city.source,
+          updatedAt: '',
+        })
+        const response = await fetch(city.api)
+        if (!response.ok) throw new Error(`${city.label} API returned ${response.status}`)
         const records = await response.json()
-        const normalized = addMapPositions(records.map(normalizeChicagoIncident))
+        const normalized = addMapPositions(records.map((record) => normalizeIncident(record, cityKey)))
 
         if (!isMounted || !normalized.length) return
         setIncidents(normalized)
         setSelectedId(normalized[0].id)
         setDataState({
           label: `${normalized.length} recent public reports imported`,
-          source: 'Chicago Data Portal: Crimes - 2001 to Present',
+          source: city.source,
           updatedAt: normalized[0].updatedOn || normalized[0].hour,
         })
       } catch (error) {
@@ -317,11 +369,11 @@ function App() {
       }
     }
 
-    loadChicagoCrimeData()
+    loadCrimeData()
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [cityKey])
 
   const visibleIncidents = useMemo(() => {
     return incidents.filter((incident) => {
@@ -432,6 +484,23 @@ function App() {
         <aside className="control-panel" aria-label="Search and filters">
           <div className="search-card">
             <label htmlFor="location-search">Location</label>
+            <select
+              className="city-select"
+              value={cityKey}
+              onChange={(event) => {
+                const nextCityKey = event.target.value
+                setCityKey(nextCityKey)
+                setQuery(CITY_SOURCES[nextCityKey].label)
+                setCategory('all')
+                setSeverity('all')
+                setReportQuery('')
+              }}
+              aria-label="Select city data source"
+            >
+              {Object.entries(CITY_SOURCES).map(([key, city]) => (
+                <option key={key} value={key}>{city.label}</option>
+              ))}
+            </select>
             <div className="search-input">
               <Search size={18} />
               <input
