@@ -807,6 +807,52 @@ function App() {
   const riskLevel = safetyScore >= 78 ? 'Lower' : safetyScore >= 62 ? 'Moderate' : 'Elevated'
   const conclusionConfidence = Math.round((averageFieldCompleteness * 0.45) + (coordinateCoverage * 0.35) + (Math.min(visibleIncidents.length, 100) * 0.2))
   const primaryHotspot = hotspotRows[0]
+  const rtccReadiness = Math.min(100, Math.round((coordinateCoverage * 0.38) + (averageFieldCompleteness * 0.32) + (Math.min(visibleIncidents.length, 80) * 0.18) + (reviewedCount ? 12 : 0)))
+  const exceptionFlags = [
+    {
+      label: 'Trend exception',
+      value: trendVerdict,
+      level: trendDelta > 10 ? 'High' : trendDelta < -10 ? 'Watch' : 'Normal',
+      text: `${selectedTrendWindow.label} is ${trendDelta >= 0 ? `${trendDelta}% above` : `${Math.abs(trendDelta)}% below`} the prior window.`,
+    },
+    {
+      label: 'Hotspot exception',
+      value: primaryHotspot?.[0] || 'No repeat zone',
+      level: repeatAreaCount > 2 ? 'High' : repeatAreaCount ? 'Watch' : 'Normal',
+      text: repeatAreaCount ? `${repeatAreaCount} repeated areas are visible in current filters.` : 'No repeated area cluster is visible.',
+    },
+    {
+      label: 'Review exception',
+      value: `${unreviewedHighCount} high`,
+      level: unreviewedHighCount ? 'High' : 'Normal',
+      text: unreviewedHighCount ? 'High-severity records remain unreviewed.' : 'No high-severity records are waiting in the local queue.',
+    },
+    {
+      label: 'Data exception',
+      value: `${rtccReadiness}% ready`,
+      level: rtccReadiness < 70 ? 'Watch' : 'Normal',
+      text: rtccReadiness < 70 ? 'Improve geocoding, field completeness, or review coverage before operational briefing.' : 'Current source quality is suitable for a command-level brief.',
+    },
+  ]
+  const activeExceptionCount = exceptionFlags.filter((item) => item.level !== 'Normal').length
+  const deploymentMatrix = timeBuckets.map((bucket) => {
+    const topCategory = [...categoryCounts].sort((a, b) => (
+      visibleIncidents.filter((incident) => incident.timeBucket === bucket.label && incident.category === b.key).length
+      - visibleIncidents.filter((incident) => incident.timeBucket === bucket.label && incident.category === a.key).length
+    ))[0]
+    return {
+      label: bucket.label,
+      count: bucket.count,
+      action: bucket.count === 0 ? 'Monitor' : bucket.count >= maxBucketCount ? 'Assign visible patrol' : 'Directed check',
+      focus: topCategory?.label || 'General',
+    }
+  })
+  const governanceChecks = [
+    { label: 'Human review', value: reviewedCount ? 'Started' : 'Needed', status: reviewedCount ? 'ok' : 'watch' },
+    { label: 'Location confidence', value: `${coordinateCoverage}%`, status: coordinateCoverage >= 80 ? 'ok' : 'watch' },
+    { label: 'Source completeness', value: `${averageFieldCompleteness}%`, status: averageFieldCompleteness >= 80 ? 'ok' : 'watch' },
+    { label: 'No individual prediction', value: 'Policy guardrail', status: 'ok' },
+  ]
   const conclusionItems = [
     {
       title: 'Primary pattern',
@@ -1473,6 +1519,69 @@ function App() {
                 </button>
               ))}
             </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="rtcc" className="operations-section" aria-label="RTCC and exception reporting board">
+        <div className="operations-header">
+          <div>
+            <span className="section-kicker"><Layers size={17} /> RTCC operations board</span>
+            <h2>Exception flags, deployment matrix, and governance checks</h2>
+          </div>
+          <div className="rtcc-score">
+            <strong>{rtccReadiness}%</strong>
+            <span>readiness</span>
+          </div>
+        </div>
+        <div className="operations-grid">
+          <article className="operations-card exception-card">
+            <div className="panel-heading">
+              <span><AlertTriangle size={17} /> Exception report</span>
+              <small>{activeExceptionCount} active</small>
+            </div>
+            <div className="exception-list">
+              {exceptionFlags.map((flag) => (
+                <button key={flag.label} type="button" onClick={() => flag.label.includes('Review') ? setQuickView('major') : setReportQuery(flag.value)}>
+                  <strong className={`flag-${flag.level.toLowerCase()}`}>{flag.level}</strong>
+                  <span>{flag.label}</span>
+                  <em>{flag.value}</em>
+                  <small>{flag.text}</small>
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="operations-card">
+            <div className="panel-heading">
+              <span><Clock3 size={17} /> Deployment matrix</span>
+              <small>time band x action</small>
+            </div>
+            <div className="deployment-matrix">
+              {deploymentMatrix.map((slot) => (
+                <button key={slot.label} type="button" onClick={() => setReportQuery(slot.label)}>
+                  <span>{slot.label}</span>
+                  <strong>{slot.action}</strong>
+                  <small>{slot.count} records · {slot.focus}</small>
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="operations-card governance-card">
+            <div className="panel-heading">
+              <span><ShieldCheck size={17} /> Governance checks</span>
+              <small>quality and policy</small>
+            </div>
+            <div className="governance-list">
+              {governanceChecks.map((check) => (
+                <span className={check.status} key={check.label}>
+                  <strong>{check.label}</strong>
+                  <small>{check.value}</small>
+                </span>
+              ))}
+            </div>
+            <p>Use sensor or ALPR-style alerts as investigative leads only; require source review before enforcement action.</p>
           </article>
         </div>
       </section>

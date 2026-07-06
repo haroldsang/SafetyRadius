@@ -1720,6 +1720,7 @@ p {
 .analyst-section,
 .supporting-section,
 .analysis-visuals-section,
+.operations-section,
 .terms-section {
   margin-top: 14px;
   border: 1px solid rgba(21, 32, 43, 0.1);
@@ -2190,6 +2191,179 @@ p {
   line-height: 1.48;
 }
 
+.operations-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.operations-header h2 {
+  margin-top: 6px;
+  color: #132331;
+  font-size: clamp(22px, 2.3vw, 32px);
+}
+
+.rtcc-score {
+  display: grid;
+  gap: 3px;
+  min-width: 128px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f0faf7;
+}
+
+.rtcc-score strong {
+  color: #1b8a74;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.rtcc-score span {
+  color: #657380;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.operations-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 1.15fr) minmax(280px, 0.9fr) minmax(280px, 0.9fr);
+  gap: 12px;
+}
+
+.operations-card {
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 14px;
+  background: #f7fafb;
+}
+
+.exception-list,
+.deployment-matrix,
+.governance-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.exception-list button {
+  display: grid;
+  grid-template-columns: 68px minmax(110px, 0.8fr) minmax(120px, 1fr);
+  gap: 6px 10px;
+  align-items: center;
+  min-height: 58px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 9px;
+  color: #33424f;
+  background: #ffffff;
+  text-align: left;
+}
+
+.exception-list strong {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #ffffff;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.flag-high {
+  background: #c8454c;
+}
+
+.flag-watch {
+  background: #df8d35;
+}
+
+.flag-normal {
+  background: #1b8a74;
+}
+
+.exception-list span,
+.exception-list em {
+  overflow: hidden;
+  font-style: normal;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exception-list small {
+  grid-column: 2 / -1;
+  color: #657380;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.deployment-matrix button {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  gap: 4px 10px;
+  align-items: center;
+  min-height: 56px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  color: #33424f;
+  background: #ffffff;
+  text-align: left;
+}
+
+.deployment-matrix span {
+  grid-row: span 2;
+  color: #153f57;
+  font-weight: 900;
+}
+
+.deployment-matrix strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deployment-matrix small,
+.governance-card p {
+  color: #657380;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.governance-list span {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border-radius: 8px;
+  padding: 10px;
+  background: #ffffff;
+}
+
+.governance-list span.watch {
+  background: #fff8ec;
+}
+
+.governance-list span.ok {
+  background: #f0faf7;
+}
+
+.governance-list strong {
+  color: #33424f;
+}
+
+.governance-list small {
+  color: #153f57;
+  font-weight: 900;
+}
+
+.governance-card p {
+  margin-top: 12px;
+}
+
 .patrol-card {
   border: 1px solid rgba(21, 32, 43, 0.09);
   border-radius: 8px;
@@ -2522,6 +2696,14 @@ input:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .operations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .exception-card {
+    grid-column: span 2;
+  }
+
   .patrol-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2563,6 +2745,7 @@ input:focus-visible {
   .powerbi-header,
   .powerbi-grid,
   .command-action-grid,
+  .operations-grid,
   .patrol-grid,
   .analyst-grid,
   .terms-header,
@@ -2578,9 +2761,22 @@ input:focus-visible {
   }
 
   .visuals-header,
+  .operations-header,
   .global-source-note {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .exception-card {
+    grid-column: auto;
+  }
+
+  .exception-list button {
+    grid-template-columns: 1fr;
+  }
+
+  .exception-list small {
+    grid-column: auto;
   }
 
   .trend-summary {
