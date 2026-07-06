@@ -4,9 +4,11 @@ import {
   Bell,
   CalendarClock,
   Car,
+  CheckCircle2,
   ChevronDown,
   CircleDot,
   Clock3,
+  Copy,
   Download,
   ExternalLink,
   Filter,
@@ -168,6 +170,7 @@ const DATE_WINDOWS = [
 ]
 
 const WATCH_PROFILES_KEY = 'saferadius_watch_profiles_v1'
+const REVIEWED_INCIDENTS_KEY = 'saferadius_reviewed_incidents_v1'
 
 const severityClass = {
   high: 'severity-high',
@@ -414,6 +417,14 @@ function App() {
       return []
     }
   })
+  const [reviewedIncidents, setReviewedIncidents] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(REVIEWED_INCIDENTS_KEY) || '{}')
+    } catch {
+      return {}
+    }
+  })
+  const [copyMessage, setCopyMessage] = useState('')
   const [incidents, setIncidents] = useState(addMapPositions(FALLBACK_INCIDENTS))
   const [dataState, setDataState] = useState({
     label: 'Loading public crime data',
@@ -571,6 +582,13 @@ function App() {
       .filter((incident) => incident.area === selectedIncident.area || incident.type === selectedIncident.type)
       .slice(0, 5)
     : []
+  const reviewedCount = visibleIncidents.filter((incident) => reviewedIncidents[incident.id]).length
+  const unreviewedHighCount = visibleIncidents.filter((incident) => incident.severity === 'high' && !reviewedIncidents[incident.id]).length
+  const selectedUpdates = selectedIncident ? [
+    { label: 'Imported', text: `${selectedIncident.type} entered from ${dataState.source}.` },
+    { label: 'Mapped', text: `Location resolved to ${selectedIncident.area}.` },
+    { label: 'Context', text: `${selectedSimilarCount} similar reports and ${selectedAreaCount} reports in this area match current filters.` },
+  ] : []
 
   function exportReportsCsv() {
     const headers = ['case', 'type', 'severity', 'category', 'area', 'status', 'time', 'source']
@@ -623,6 +641,24 @@ function App() {
     setSeverity(profile.severity)
     setDateWindow(profile.dateWindow)
     setQuickView(profile.quickView)
+  }
+
+  function markSelectedReviewed() {
+    if (!selectedIncident) return
+    const nextReviewed = { ...reviewedIncidents, [selectedIncident.id]: true }
+    setReviewedIncidents(nextReviewed)
+    localStorage.setItem(REVIEWED_INCIDENTS_KEY, JSON.stringify(nextReviewed))
+  }
+
+  async function copySelectedIncidentLink() {
+    if (!selectedIncident) return
+    const text = `${selectedIncident.type} near ${selectedIncident.area} (${selectedIncident.time})\n${selectedIncident.summary}\n${getGoogleMapsSearchUrl(getIncidentLocationQuery(selectedIncident))}`
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopyMessage('Copied incident summary')
+    } catch {
+      setCopyMessage('Copy unavailable in this browser')
+    }
   }
 
   return (
@@ -810,6 +846,13 @@ function App() {
             ))}
           </div>
 
+          <div className="map-legend" aria-label="Map legend">
+            <span><i className="severity-high" /> High</span>
+            <span><i className="severity-medium" /> Medium</span>
+            <span><i className="severity-low" /> Low</span>
+            <span><Layers size={14} /> {showHeatmap ? 'Density layer active' : 'Density layer hidden'}</span>
+          </div>
+
           <div className="map-canvas">
             <span className="street street-a" />
             <span className="street street-b" />
@@ -856,6 +899,17 @@ function App() {
               <div className="drawer-actions">
                 <a href={selectedMapsUrl} target="_blank" rel="noreferrer"><MapPin size={16} /> View location</a>
                 <a href={selectedDirectionsUrl} target="_blank" rel="noreferrer"><Navigation size={16} /> Directions</a>
+                <button type="button" onClick={copySelectedIncidentLink}><Copy size={16} /> Share summary</button>
+                <button type="button" onClick={markSelectedReviewed}><CheckCircle2 size={16} /> Mark reviewed</button>
+              </div>
+              {copyMessage && <p className="copy-message">{copyMessage}</p>}
+              <div className="incident-updates">
+                {selectedUpdates.map((update) => (
+                  <span key={update.label}>
+                    <strong>{update.label}</strong>
+                    <small>{update.text}</small>
+                  </span>
+                ))}
               </div>
             </article>
           )}
@@ -1076,6 +1130,18 @@ function App() {
           </div>
         </article>
 
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><CheckCircle2 size={17} /> Review queue</span>
+            <small>Local workflow</small>
+          </div>
+          <div className="signal-grid">
+            <span><strong>{unreviewedHighCount}</strong><small>unreviewed high</small></span>
+            <span><strong>{reviewedCount}</strong><small>reviewed</small></span>
+            <span><strong>{visibleIncidents.length - reviewedCount}</strong><small>remaining</small></span>
+          </div>
+        </article>
+
         <article id="alerts" className="analysis-card alert-panel">
           <span className="section-kicker"><Bell size={16} /> Alert setup</span>
           <h2>Watch this area</h2>
@@ -1130,7 +1196,7 @@ function App() {
         <div className="incident-list reports-list">
           {reportRows.map((incident) => (
             <button
-              className={selectedIncident?.id === incident.id ? 'incident-item selected' : 'incident-item'}
+              className={`${selectedIncident?.id === incident.id ? 'incident-item selected' : 'incident-item'} ${reviewedIncidents[incident.id] ? 'reviewed' : ''}`}
               key={incident.id}
               type="button"
               onClick={() => setSelectedId(incident.id)}

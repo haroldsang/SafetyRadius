@@ -505,6 +505,35 @@ p {
   background: #153f57;
 }
 
+.map-legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 14px 12px;
+  border-bottom: 1px solid rgba(21, 32, 43, 0.08);
+  background: rgba(247, 250, 251, 0.82);
+}
+
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 999px;
+  padding: 0 9px;
+  color: #4b5b67;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.map-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
 .map-canvas {
   position: relative;
   min-height: 430px;
@@ -689,8 +718,52 @@ p {
 .drawer-actions {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+
+.drawer-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  border: 1px solid rgba(21, 63, 87, 0.14);
+  border-radius: 8px;
+  color: #153f57;
+  background: #edf5f8;
+  font-weight: 850;
+}
+
+.copy-message {
+  grid-column: 1 / -1;
+  color: #1b8a74;
+  font-weight: 850;
+}
+
+.incident-updates {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.incident-updates span {
+  display: grid;
+  gap: 4px;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f5f8fa;
+}
+
+.incident-updates strong {
+  color: #153f57;
+}
+
+.incident-updates small {
+  color: #657380;
+  font-weight: 750;
+  line-height: 1.35;
 }
 
 .feed-heading {
@@ -747,6 +820,19 @@ p {
 .incident-item.selected {
   border-color: rgba(21, 63, 87, 0.32);
   background: #eef6f8;
+}
+
+.incident-item.reviewed {
+  opacity: 0.72;
+}
+
+.incident-item.reviewed strong::after {
+  content: " reviewed";
+  margin-left: 6px;
+  color: #1b8a74;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .item-icon {
@@ -1375,6 +1461,8 @@ input:focus-visible {
 
   .incident-drawer,
   .incident-drawer dl,
+  .drawer-actions,
+  .incident-updates,
   .reports-header,
   .reports-tools,
   .incident-list,
