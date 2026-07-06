@@ -99,14 +99,19 @@ p {
   flex: 1;
 }
 
-.nav-links a {
+.nav-links a,
+.page-tabs button {
   border-radius: 8px;
+  border: 0;
   padding: 10px 13px;
   color: #52616d;
+  background: transparent;
   font-weight: 750;
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.page-tabs button:hover,
+.page-tabs button.active {
   color: #15202b;
   background: #edf3f6;
 }
@@ -125,6 +130,7 @@ p {
 }
 
 .crime-map-heading,
+.data-page-heading,
 .conclusions-section,
 .control-panel,
 .map-stage,
@@ -146,6 +152,11 @@ p {
   padding: 16px;
 }
 
+.data-page-heading {
+  margin-bottom: 14px;
+  padding: 16px;
+}
+
 .crime-map-heading span {
   color: #657380;
   font-size: 12px;
@@ -160,7 +171,15 @@ p {
   line-height: 1.05;
 }
 
-.crime-map-heading p {
+.data-page-heading h1 {
+  margin-top: 6px;
+  color: #132331;
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1.08;
+}
+
+.crime-map-heading p,
+.data-page-heading p {
   margin-top: 8px;
   color: #657380;
   font-weight: 750;
@@ -1984,7 +2003,7 @@ p {
 
 .term-card {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   border: 1px solid rgba(21, 32, 43, 0.09);
   border-radius: 8px;
   padding: 14px;
@@ -1994,18 +2013,6 @@ p {
 .term-card h3 {
   color: #153f57;
   font-size: 18px;
-}
-
-.term-card div {
-  display: grid;
-  gap: 5px;
-}
-
-.term-card span {
-  color: #657380;
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 .term-card p {

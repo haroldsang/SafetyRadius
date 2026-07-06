@@ -172,43 +172,35 @@ const DATE_WINDOWS = [
 const CRIME_TERMS = [
   {
     term: 'Incident',
-    beginner: 'A reported event in a public safety dataset.',
-    professional: 'A source-recorded event, often not equivalent to a final charge, conviction, or verified crime.',
+    note: 'An event recorded in a public safety dataset. In incident-based reporting, an incident is a source record and should not be treated as a conviction or final legal finding.',
   },
   {
     term: 'Felony',
-    beginner: 'A more serious category of offense.',
-    professional: 'A legal seriousness class used by some jurisdictions; category definitions vary by state and dataset.',
+    note: 'A serious crime category commonly distinguished from misdemeanors. Exact definitions and penalties depend on the jurisdiction.',
   },
   {
     term: 'Misdemeanor',
-    beginner: 'A less serious offense category than a felony.',
-    professional: 'A lower legal seriousness class; still should be interpreted by local statute and reporting rules.',
+    note: 'A criminal offense generally considered less serious than a felony. Classification and consequences vary by jurisdiction.',
   },
   {
     term: 'Arrest noted',
-    beginner: 'The source record says an arrest was connected to the report.',
-    professional: 'An arrest flag or resolution field in the source data; not a conviction signal.',
+    note: 'A source field or resolution value indicating that an arrest was associated with the record. It is not the same as a conviction.',
   },
   {
     term: 'Hotspot',
-    beginner: 'A place with repeated reports in the current filters.',
-    professional: 'A concentration based on filtered records; sensitive to geocoding, time window, and reporting practices.',
+    note: 'An area with high crime intensity or repeated incident concentration. Hotspots are commonly visualized with maps for spatial analysis.',
   },
   {
     term: 'Field completeness',
-    beginner: 'How many important source fields were filled in.',
-    professional: 'A source-transparency metric based on tracked fields present in normalized official records.',
+    note: 'A data quality measure showing how many important source fields are present in a normalized record.',
   },
   {
     term: 'Violent offense',
-    beginner: 'A report involving force, threat, or harm.',
-    professional: 'A normalized analytical category derived from source labels such as assault, battery, robbery, weapon, or homicide.',
+    note: 'A broad analytical grouping for offenses involving force, threat, or harm, such as homicide, robbery, assault, and related categories.',
   },
   {
     term: 'Property offense',
-    beginner: 'A report involving theft, burglary, vehicle crime, or damage.',
-    professional: 'A normalized analytical category derived from source labels and not a substitute for agency classification.',
+    note: 'A broad analytical grouping for offenses involving property, such as burglary, larceny-theft, motor vehicle theft, and arson.',
   },
 ]
 
@@ -492,6 +484,7 @@ function addMapPositions(incidents) {
 }
 
 function App() {
+  const [activePage, setActivePage] = useState('analysis')
   const [cityKey, setCityKey] = useState('chicago')
   const [query, setQuery] = useState('Chicago, IL')
   const [category, setCategory] = useState('all')
@@ -932,21 +925,18 @@ function App() {
           <span><ShieldCheck size={22} /></span>
           <strong>SafeRadius</strong>
         </a>
-        <nav className="nav-links" aria-label="Primary navigation">
-          <a href="#map">Map</a>
-          <a href="#compstat">CompStat</a>
-          <a href="#patrol">Patrol</a>
-          <a href="#east-coast">East Coast</a>
-          <a href="#feed">Feed</a>
-          <a href="#score">Safety score</a>
-          <a href="#terms">Terms</a>
-          <a href="#alerts">Alerts</a>
+        <nav className="nav-links page-tabs" aria-label="Primary navigation">
+          <button className={activePage === 'analysis' ? 'active' : ''} type="button" onClick={() => setActivePage('analysis')}>Analysis</button>
+          <button className={activePage === 'data' ? 'active' : ''} type="button" onClick={() => setActivePage('data')}>Data</button>
+          <button className={activePage === 'terms' ? 'active' : ''} type="button" onClick={() => setActivePage('terms')}>Terms</button>
         </nav>
         <button className="icon-button" type="button" aria-label="Notification settings">
           <Bell size={19} />
         </button>
       </header>
 
+      {activePage === 'analysis' && (
+      <>
       <section className="crime-map-heading" aria-label="Crime map query summary">
         <div>
           <span>Crime Map</span>
@@ -1164,7 +1154,7 @@ function App() {
             ))}
           </div>
 
-          {selectedIncident && (
+          {activePage === 'data' && selectedIncident && (
             <article className="incident-drawer">
               <div>
                 <span className={`severity-pill ${severityClass[selectedIncident.severity]}`}>{selectedIncident.severity}</span>
@@ -1451,6 +1441,19 @@ function App() {
         </div>
       </section>
 
+      </>
+      )}
+
+      {activePage === 'data' && (
+      <>
+      <section className="data-page-heading" aria-label="Data page summary">
+        <div>
+          <span className="section-kicker"><Layers size={17} /> Data workspace</span>
+          <h1>Source records, diagnostics, and incident reports</h1>
+          <p>Detailed records are separated from the command analysis page so analysts can inspect evidence without crowding the operational dashboard.</p>
+        </div>
+      </section>
+
       <section className="supporting-section" aria-label="Supporting diagnostics">
         <div className="supporting-header">
           <span className="section-kicker"><Layers size={17} /> Supporting diagnostics</span>
@@ -1726,31 +1729,6 @@ function App() {
         </div>
       </section>
 
-      <section id="terms" className="terms-section" aria-label="Crime terms glossary">
-        <div className="terms-header">
-          <div>
-            <span className="section-kicker"><ShieldCheck size={17} /> Crime terms</span>
-            <h2>Glossary for beginners and professionals</h2>
-          </div>
-          <p>Terms are normalized for analysis. Always use the official source record for legal interpretation.</p>
-        </div>
-        <div className="terms-grid">
-          {CRIME_TERMS.map((item) => (
-            <article className="term-card" key={item.term}>
-              <h3>{item.term}</h3>
-              <div>
-                <span>Beginner</span>
-                <p>{item.beginner}</p>
-              </div>
-              <div>
-                <span>Professional</span>
-                <p>{item.professional}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
       <section id="feed" className="reports-section" aria-label="Incident reports">
         <div className="reports-header">
           <div>
@@ -1803,6 +1781,28 @@ function App() {
           ))}
         </div>
       </section>
+      </>
+      )}
+
+      {activePage === 'terms' && (
+      <section id="terms" className="terms-section" aria-label="Crime terms glossary">
+        <div className="terms-header">
+          <div>
+            <span className="section-kicker"><ShieldCheck size={17} /> Crime terms</span>
+            <h2>Glossary for beginners and professionals</h2>
+          </div>
+          <p>Terms are normalized for analysis. Always use the official source record for legal interpretation.</p>
+        </div>
+        <div className="terms-grid">
+          {CRIME_TERMS.map((item) => (
+            <article className="term-card" key={item.term}>
+              <h3>{item.term}</h3>
+              <p>{item.note}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+      )}
     </main>
   )
 }
