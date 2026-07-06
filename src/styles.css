@@ -234,6 +234,19 @@ p {
   background: #e6eef2;
 }
 
+.panel-heading .panel-action {
+  display: inline-flex;
+  width: auto;
+  min-width: 68px;
+  height: 30px;
+  gap: 5px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
 .category-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1401,6 +1414,32 @@ meter {
 }
 
 .watch-profiles small {
+  color: #657380;
+  font-weight: 850;
+}
+
+.impact-metrics {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.impact-metrics span {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  align-items: center;
+  border-radius: 8px;
+  padding: 9px;
+  background: #f5f8fa;
+}
+
+.impact-metrics strong {
+  color: #153f57;
+  font-size: 22px;
+}
+
+.impact-metrics small {
   color: #657380;
   font-weight: 850;
 }

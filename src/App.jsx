@@ -584,6 +584,13 @@ function App() {
     : []
   const reviewedCount = visibleIncidents.filter((incident) => reviewedIncidents[incident.id]).length
   const unreviewedHighCount = visibleIncidents.filter((incident) => incident.severity === 'high' && !reviewedIncidents[incident.id]).length
+  const baselineHighCount = incidents.filter((incident) => incident.severity === 'high').length
+  const baselinePropertyCount = incidents.filter((incident) => incident.category === 'property').length
+  const filterCaptureRate = incidents.length ? Math.round((visibleIncidents.length / incidents.length) * 100) : 0
+  const highCaptureRate = baselineHighCount ? Math.round((highCount / baselineHighCount) * 100) : 0
+  const propertyCaptureRate = baselinePropertyCount
+    ? Math.round((visibleIncidents.filter((incident) => incident.category === 'property').length / baselinePropertyCount) * 100)
+    : 0
   const selectedUpdates = selectedIncident ? [
     { label: 'Imported', text: `${selectedIncident.type} entered from ${dataState.source}.` },
     { label: 'Mapped', text: `Location resolved to ${selectedIncident.area}.` },
@@ -656,6 +663,24 @@ function App() {
     try {
       await navigator.clipboard.writeText(text)
       setCopyMessage('Copied incident summary')
+    } catch {
+      setCopyMessage('Copy unavailable in this browser')
+    }
+  }
+
+  async function copyAreaBrief() {
+    const brief = [
+      `SafeRadius brief for ${query}`,
+      `Source: ${dataState.source}`,
+      `Records: ${visibleIncidents.length}/${incidents.length}`,
+      `Safety score: ${safetyScore}`,
+      `Dominant offense: ${dominantOffense}`,
+      `Peak time band: ${peakBucket}`,
+      `Hotspots: ${hotspotRows.map(([area, count]) => `${area} (${count})`).join('; ')}`,
+    ].join('\n')
+    try {
+      await navigator.clipboard.writeText(brief)
+      setCopyMessage('Copied area brief')
     } catch {
       setCopyMessage('Copy unavailable in this browser')
     }
@@ -1091,7 +1116,7 @@ function App() {
         <article className="analysis-card summary-panel">
           <div className="panel-heading">
             <span><Sparkles size={17} /> Pattern summary</span>
-            <small>Current filter</small>
+            <button className="panel-action" type="button" onClick={copyAreaBrief}><Copy size={14} /> Copy</button>
           </div>
           <div className="summary-stack">
             <span><strong>{dominantOffense}</strong><small>dominant offense</small></span>
@@ -1139,6 +1164,18 @@ function App() {
             <span><strong>{unreviewedHighCount}</strong><small>unreviewed high</small></span>
             <span><strong>{reviewedCount}</strong><small>reviewed</small></span>
             <span><strong>{visibleIncidents.length - reviewedCount}</strong><small>remaining</small></span>
+          </div>
+        </article>
+
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><TrendingUp size={17} /> Filter impact</span>
+            <small>vs import</small>
+          </div>
+          <div className="impact-metrics">
+            <span><strong>{filterCaptureRate}%</strong><small>records captured</small></span>
+            <span><strong>{highCaptureRate}%</strong><small>high captured</small></span>
+            <span><strong>{propertyCaptureRate}%</strong><small>property captured</small></span>
           </div>
         </article>
 
