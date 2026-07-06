@@ -169,6 +169,49 @@ const DATE_WINDOWS = [
   { key: '90', label: '90 days' },
 ]
 
+const CRIME_TERMS = [
+  {
+    term: 'Incident',
+    beginner: 'A reported event in a public safety dataset.',
+    professional: 'A source-recorded event, often not equivalent to a final charge, conviction, or verified crime.',
+  },
+  {
+    term: 'Felony',
+    beginner: 'A more serious category of offense.',
+    professional: 'A legal seriousness class used by some jurisdictions; category definitions vary by state and dataset.',
+  },
+  {
+    term: 'Misdemeanor',
+    beginner: 'A less serious offense category than a felony.',
+    professional: 'A lower legal seriousness class; still should be interpreted by local statute and reporting rules.',
+  },
+  {
+    term: 'Arrest noted',
+    beginner: 'The source record says an arrest was connected to the report.',
+    professional: 'An arrest flag or resolution field in the source data; not a conviction signal.',
+  },
+  {
+    term: 'Hotspot',
+    beginner: 'A place with repeated reports in the current filters.',
+    professional: 'A concentration based on filtered records; sensitive to geocoding, time window, and reporting practices.',
+  },
+  {
+    term: 'Field completeness',
+    beginner: 'How many important source fields were filled in.',
+    professional: 'A source-transparency metric based on tracked fields present in normalized official records.',
+  },
+  {
+    term: 'Violent offense',
+    beginner: 'A report involving force, threat, or harm.',
+    professional: 'A normalized analytical category derived from source labels such as assault, battery, robbery, weapon, or homicide.',
+  },
+  {
+    term: 'Property offense',
+    beginner: 'A report involving theft, burglary, vehicle crime, or damage.',
+    professional: 'A normalized analytical category derived from source labels and not a substitute for agency classification.',
+  },
+]
+
 const WATCH_PROFILES_KEY = 'saferadius_watch_profiles_v1'
 const REVIEWED_INCIDENTS_KEY = 'saferadius_reviewed_incidents_v1'
 const INCIDENT_NOTES_KEY = 'saferadius_incident_notes_v1'
@@ -583,6 +626,24 @@ function App() {
   const maxDailyCount = Math.max(1, ...dailyRows.map(([, count]) => count))
   const mappedIncidents = visibleIncidents.filter((incident) => Number.isFinite(incident.latitude) && Number.isFinite(incident.longitude))
   const repeatAreaCount = hotspotRows.filter(([, count]) => count > 1).length
+  const eastCoastIncidents = cityKey === 'newYork' ? visibleIncidents : incidents.filter((incident) => incident.sourceCity === CITY_SOURCES.newYork.label)
+  const eastCoastBoroughRows = Object.entries(
+    eastCoastIncidents.reduce((counts, incident) => {
+      counts[incident.area] = (counts[incident.area] || 0) + 1
+      return counts
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+  const maxBoroughCount = Math.max(1, ...eastCoastBoroughRows.map(([, count]) => count))
+  const eastCoastFelonyCount = eastCoastIncidents.filter((incident) => `${incident.status} ${incident.summary}`.toLowerCase().includes('felony')).length
+  const eastCoastNightCount = eastCoastIncidents.filter((incident) => incident.timeBucket === 'Evening' || incident.timeBucket === 'Overnight').length
+  const eastCoastPropertyCount = eastCoastIncidents.filter((incident) => incident.category === 'property').length
+  const eastCoastViolentCount = eastCoastIncidents.filter((incident) => incident.category === 'violent').length
+  const eastCoastTotal = Math.max(1, eastCoastIncidents.length)
+  const eastCoastConclusion = eastCoastIncidents.length
+    ? `${eastCoastPropertyCount >= eastCoastViolentCount ? 'Property-related reports dominate' : 'Violent-category reports are comparatively prominent'} in the East Coast view, with ${Math.round((eastCoastNightCount / eastCoastTotal) * 100)}% occurring in evening or overnight bands.`
+    : 'Switch to New York to load East Coast official complaint data for regional analysis.'
   const reportRows = visibleIncidents
     .filter((incident) => {
       const haystack = `${incident.type} ${incident.area} ${incident.status} ${incident.sourceId || ''}`.toLowerCase()
@@ -804,8 +865,10 @@ function App() {
         </a>
         <nav className="nav-links" aria-label="Primary navigation">
           <a href="#map">Map</a>
+          <a href="#east-coast">East Coast</a>
           <a href="#feed">Feed</a>
           <a href="#score">Safety score</a>
+          <a href="#terms">Terms</a>
           <a href="#alerts">Alerts</a>
         </nav>
         <button className="icon-button" type="button" aria-label="Notification settings">
@@ -1111,6 +1174,70 @@ function App() {
         </div>
       </section>
 
+      <section id="east-coast" className="powerbi-section" aria-label="East Coast crime analysis dashboard">
+        <div className="powerbi-header">
+          <div>
+            <span className="section-kicker"><TrendingUp size={17} /> East Coast analysis</span>
+            <h2>New York official complaint data summary</h2>
+            <p>{eastCoastConclusion}</p>
+          </div>
+          <button type="button" onClick={() => {
+            setCityKey('newYork')
+            setQuery(CITY_SOURCES.newYork.label)
+            setCategory('all')
+            setSeverity('all')
+            setDateWindow('all')
+            setQuickView('all')
+          }}>
+            Load NYC data
+          </button>
+        </div>
+        <div className="powerbi-grid">
+          <article className="kpi-tile">
+            <span>Total records</span>
+            <strong>{eastCoastIncidents.length}</strong>
+            <small>NYC official source records currently loaded</small>
+          </article>
+          <article className="kpi-tile">
+            <span>Felony signal</span>
+            <strong>{Math.round((eastCoastFelonyCount / eastCoastTotal) * 100)}%</strong>
+            <small>records carrying felony classification text</small>
+          </article>
+          <article className="kpi-tile">
+            <span>Night / evening</span>
+            <strong>{Math.round((eastCoastNightCount / eastCoastTotal) * 100)}%</strong>
+            <small>evening or overnight report band</small>
+          </article>
+          <article className="kpi-tile">
+            <span>Property vs violent</span>
+            <strong>{eastCoastPropertyCount}:{eastCoastViolentCount}</strong>
+            <small>normalized analytical category ratio</small>
+          </article>
+          <article className="chart-card wide">
+            <div className="panel-heading">
+              <span><MapPin size={17} /> Borough / area distribution</span>
+              <small>Top 5</small>
+            </div>
+            <div className="horizontal-bars">
+              {eastCoastBoroughRows.map(([area, count]) => (
+                <button key={area} type="button" onClick={() => setReportQuery(area)}>
+                  <span>{area}</span>
+                  <i style={{ width: `${Math.max(8, (count / maxBoroughCount) * 100)}%` }} />
+                  <strong>{count}</strong>
+                </button>
+              ))}
+            </div>
+          </article>
+          <article className="chart-card">
+            <div className="donut-chart" style={{ '--slice-a': `${Math.round((eastCoastPropertyCount / eastCoastTotal) * 100)}%` }}>
+              <strong>{Math.round((eastCoastPropertyCount / eastCoastTotal) * 100)}%</strong>
+              <span>property</span>
+            </div>
+            <p>Normalized category split helps new users understand broad risk type, while preserving source-specific labels in reports.</p>
+          </article>
+        </div>
+      </section>
+
       <section className="analytics-grid" aria-label="Data analysis modules">
         <article className="analysis-card trend-panel">
           <div className="panel-heading">
@@ -1378,6 +1505,31 @@ function App() {
             </div>
           )}
         </article>
+      </section>
+
+      <section id="terms" className="terms-section" aria-label="Crime terms glossary">
+        <div className="terms-header">
+          <div>
+            <span className="section-kicker"><ShieldCheck size={17} /> Crime terms</span>
+            <h2>Glossary for beginners and professionals</h2>
+          </div>
+          <p>Terms are normalized for analysis. Always use the official source record for legal interpretation.</p>
+        </div>
+        <div className="terms-grid">
+          {CRIME_TERMS.map((item) => (
+            <article className="term-card" key={item.term}>
+              <h3>{item.term}</h3>
+              <div>
+                <span>Beginner</span>
+                <p>{item.beginner}</p>
+              </div>
+              <div>
+                <span>Professional</span>
+                <p>{item.professional}</p>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section id="feed" className="reports-section" aria-label="Incident reports">
