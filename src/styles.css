@@ -362,6 +362,94 @@ p {
   line-height: 1.4;
 }
 
+.command-lens-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.command-lens-grid button {
+  display: grid;
+  gap: 6px;
+  min-height: 148px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 12px;
+  color: #33424f;
+  background: #ffffff;
+  text-align: left;
+}
+
+.command-lens-grid span,
+.cross-pressure-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #657380;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.command-lens-grid strong {
+  overflow: hidden;
+  color: #153f57;
+  font-size: 20px;
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command-lens-grid em {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #153f57;
+  background: #edf5f8;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.command-lens-grid small {
+  color: #657380;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.cross-pressure-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.cross-pressure-strip article {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(27, 138, 116, 0.18);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f0faf7;
+}
+
+.cross-pressure-strip strong {
+  overflow: hidden;
+  color: #153f57;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cross-pressure-strip p {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.38;
+}
+
 .workflow-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3078,6 +3166,7 @@ input:focus-visible {
   .conclusion-grid,
   .visuals-grid,
   .today-priority-grid,
+  .command-lens-grid,
   .workflow-strip,
   .data-analysis-summary,
   .source-catalog-grid,
@@ -3090,12 +3179,20 @@ input:focus-visible {
     grid-column: span 2;
   }
 
+  .command-lens-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .powerbi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .command-action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cross-pressure-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .operations-grid {
@@ -3146,6 +3243,8 @@ input:focus-visible {
   .global-area-filter,
   .daily-command-header,
   .today-priority-grid,
+  .command-lens-grid,
+  .cross-pressure-strip,
   .workflow-strip,
   .data-analysis-summary,
   .public-data-header,

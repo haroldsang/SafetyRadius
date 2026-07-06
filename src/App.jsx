@@ -1130,6 +1130,69 @@ function App() {
     { step: '4', title: 'Brief', text: 'Copy a concise shift brief or open the analysis workspace.', status: trendVerdict },
   ]
 
+  const commandLenses = [
+    {
+      label: 'Risk',
+      value: riskLevel,
+      metric: `${highCount} high`,
+      text: highCount ? 'Prioritize high-severity records before routine review.' : 'No high-severity queue is visible in current filters.',
+      icon: <ShieldCheck size={17} />,
+    },
+    {
+      label: 'Place',
+      value: primaryHotspot?.[0] || 'No hotspot',
+      metric: primaryHotspot ? `${primaryHotspot[1]} reports` : '0 repeats',
+      text: primaryHotspot ? 'Primary deployment attention should start with this repeated area.' : 'No single place is dominating the current view.',
+      icon: <MapPin size={17} />,
+    },
+    {
+      label: 'Time',
+      value: peakBucket,
+      metric: `${timeBuckets.find((bucket) => bucket.label === peakBucket)?.count || 0} records`,
+      text: 'Use the strongest time band to plan watch-window coverage.',
+      icon: <Clock3 size={17} />,
+    },
+    {
+      label: 'Offense',
+      value: dominantOffense,
+      metric: `${topIncidentTypes[0]?.[1] || 0} matches`,
+      text: 'This offense type is currently driving the operational pattern.',
+      icon: <Siren size={17} />,
+    },
+    {
+      label: 'Trend',
+      value: trendVerdict,
+      metric: trendDelta >= 0 ? `+${trendDelta}%` : `${trendDelta}%`,
+      text: `${selectedTrendWindow.label} trend compared with the prior equivalent window.`,
+      icon: <TrendingUp size={17} />,
+    },
+    {
+      label: 'Confidence',
+      value: `${rtccReadiness}%`,
+      metric: `${coordinateCoverage}% mapped`,
+      text: 'Use this as a readiness signal before escalating the brief.',
+      icon: <Layers size={17} />,
+    },
+  ]
+
+  const crossPressureItems = [
+    {
+      label: 'Where x When',
+      value: primaryHotspot ? `${primaryHotspot[0]} · ${peakBucket}` : `No hotspot · ${peakBucket}`,
+      text: 'Best first deployment cue from current public reports.',
+    },
+    {
+      label: 'What x Severity',
+      value: `${dominantOffense} · ${highCount} high`,
+      text: 'Offense pattern plus urgency level for triage.',
+    },
+    {
+      label: 'Data x Action',
+      value: `${rtccReadiness}% ready · ${activeExceptionCount} exceptions`,
+      text: 'Source quality gate before command decisions.',
+    },
+  ]
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -1204,6 +1267,25 @@ function App() {
               <strong>{item.value}</strong>
               <small>{item.text}</small>
             </button>
+          ))}
+        </div>
+        <div className="command-lens-grid" aria-label="Multidimensional command lenses">
+          {commandLenses.map((lens) => (
+            <button key={lens.label} type="button" onClick={() => setActivePage('data')}>
+              <span>{lens.icon}{lens.label}</span>
+              <strong>{lens.value}</strong>
+              <em>{lens.metric}</em>
+              <small>{lens.text}</small>
+            </button>
+          ))}
+        </div>
+        <div className="cross-pressure-strip" aria-label="Cross-dimensional operational pressure">
+          {crossPressureItems.map((item) => (
+            <article key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.text}</p>
+            </article>
           ))}
         </div>
         <div className="workflow-strip">
