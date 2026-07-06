@@ -274,6 +274,189 @@ p {
   font-weight: 850;
 }
 
+.daily-command-section {
+  border: 1px solid rgba(21, 32, 43, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 50px rgba(31, 44, 58, 0.08);
+}
+
+.daily-command-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.daily-command-header h2 {
+  margin-top: 6px;
+  color: #132331;
+  font-size: clamp(24px, 2.6vw, 36px);
+}
+
+.daily-command-header p {
+  margin-top: 6px;
+  max-width: 820px;
+  color: #657380;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.daily-command-header button,
+.daily-command-footer button,
+.daily-command-footer a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid #153f57;
+  border-radius: 8px;
+  padding: 0 13px;
+  color: #ffffff;
+  background: #153f57;
+  font-weight: 900;
+}
+
+.today-priority-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.today-priority-grid button {
+  display: grid;
+  gap: 8px;
+  min-height: 174px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 14px;
+  color: #33424f;
+  background: #f7fafb;
+  text-align: left;
+}
+
+.today-priority-grid span,
+.data-analysis-summary span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #657380;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.today-priority-grid strong {
+  color: #153f57;
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.08;
+}
+
+.today-priority-grid small {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.workflow-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.workflow-strip article {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 4px 10px;
+  align-items: start;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.workflow-strip strong {
+  grid-row: span 3;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #153f57;
+}
+
+.workflow-strip span {
+  color: #132331;
+  font-weight: 900;
+}
+
+.workflow-strip p {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.workflow-strip small {
+  color: #1b8a74;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.daily-command-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.daily-command-footer button:nth-child(2),
+.daily-command-footer a {
+  color: #153f57;
+  border-color: rgba(21, 63, 87, 0.14);
+  background: #edf5f8;
+}
+
+.data-analysis-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.data-analysis-summary article {
+  display: grid;
+  gap: 8px;
+  min-height: 150px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 50px rgba(31, 44, 58, 0.08);
+}
+
+.data-analysis-summary strong {
+  overflow: hidden;
+  color: #153f57;
+  font-size: clamp(22px, 2vw, 30px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-analysis-summary p {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.42;
+}
+
 .control-panel {
   display: flex;
   flex-direction: column;
@@ -2680,6 +2863,9 @@ input:focus-visible {
   .crime-map-heading,
   .conclusion-grid,
   .visuals-grid,
+  .today-priority-grid,
+  .workflow-strip,
+  .data-analysis-summary,
   .terms-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2742,6 +2928,10 @@ input:focus-visible {
   .crime-map-heading,
   .crime-map-metrics,
   .global-area-filter,
+  .daily-command-header,
+  .today-priority-grid,
+  .workflow-strip,
+  .data-analysis-summary,
   .powerbi-header,
   .powerbi-grid,
   .command-action-grid,
@@ -2762,6 +2952,7 @@ input:focus-visible {
 
   .visuals-header,
   .operations-header,
+  .daily-command-header,
   .global-source-note {
     align-items: flex-start;
     flex-direction: column;

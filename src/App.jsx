@@ -1022,6 +1022,47 @@ function App() {
     }
   }
 
+  const todayPriorityItems = [
+    {
+      label: 'Review now',
+      value: unreviewedHighCount ? `${unreviewedHighCount} high-priority` : 'No high backlog',
+      text: unreviewedHighCount ? 'Open the high-severity queue before routine mapping work.' : 'Continue standard monitoring and source refresh checks.',
+      action: () => {
+        setQuickView('major')
+        setActivePage('data')
+      },
+      icon: <Siren size={18} />,
+    },
+    {
+      label: 'Deploy attention',
+      value: primaryHotspot?.[0] || 'No repeat zone',
+      text: primaryHotspot ? `Focus the next watch window around ${primaryHotspot[0]}.` : 'No hotspot requires special deployment from current filters.',
+      action: () => setReportQuery(primaryHotspot?.[0] || ''),
+      icon: <MapPin size={18} />,
+    },
+    {
+      label: 'Watch window',
+      value: peakBucket,
+      text: `${peakBucket} has the strongest time signal in the current area.`,
+      action: () => setReportQuery(peakBucket),
+      icon: <Clock3 size={18} />,
+    },
+    {
+      label: 'Exception count',
+      value: `${activeExceptionCount} active`,
+      text: activeExceptionCount ? 'Review exception flags before approving the shift brief.' : 'No exception flag is above normal threshold.',
+      action: () => setActivePage('data'),
+      icon: <AlertTriangle size={18} />,
+    },
+  ]
+
+  const dailyWorkflowSteps = [
+    { step: '1', title: 'Triage', text: 'Check high-severity and unreviewed records first.', status: unreviewedHighCount ? 'Action needed' : 'Clear' },
+    { step: '2', title: 'Assign', text: 'Send attention to the strongest hotspot and watch window.', status: primaryHotspot ? primaryHotspot[0] : 'No hotspot' },
+    { step: '3', title: 'Verify', text: 'Confirm source quality before using sensor-style alerts operationally.', status: `${rtccReadiness}% ready` },
+    { step: '4', title: 'Brief', text: 'Copy a concise shift brief or open the analysis workspace.', status: trendVerdict },
+  ]
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -1030,8 +1071,8 @@ function App() {
           <strong>SafeRadius</strong>
         </a>
         <nav className="nav-links page-tabs" aria-label="Primary navigation">
-          <button className={activePage === 'analysis' ? 'active' : ''} type="button" onClick={() => setActivePage('analysis')}>Analysis</button>
-          <button className={activePage === 'data' ? 'active' : ''} type="button" onClick={() => setActivePage('data')}>Data</button>
+          <button className={activePage === 'analysis' ? 'active' : ''} type="button" onClick={() => setActivePage('analysis')}>Today</button>
+          <button className={activePage === 'data' ? 'active' : ''} type="button" onClick={() => setActivePage('data')}>Analysis & Data</button>
           <button className={activePage === 'terms' ? 'active' : ''} type="button" onClick={() => setActivePage('terms')}>Terms</button>
         </nav>
         <button className="icon-button" type="button" aria-label="Notification settings">
@@ -1044,8 +1085,8 @@ function App() {
       <section className="crime-map-heading" aria-label="Crime map query summary">
         <div>
           <span>Global Area Filter</span>
-          <h1>{CITY_SOURCES[cityKey].label} public safety map</h1>
-          <p>All pages and analysis modules use this selected area and official source context.</p>
+          <h1>{CITY_SOURCES[cityKey].label} daily command brief</h1>
+          <p>Set the operational area once; today's workflow and the second-page analysis workspace both follow it.</p>
           <div className="global-area-filter">
             <select
               value={cityKey}
@@ -1078,6 +1119,45 @@ function App() {
         </div>
       </section>
 
+      <section className="daily-command-section" aria-label="Today police workflow">
+        <div className="daily-command-header">
+          <div>
+            <span className="section-kicker"><ShieldCheck size={17} /> Today command flow</span>
+            <h2>Most important actions for today</h2>
+            <p>Modeled after RTCC and dispatch workflows: triage the queue, assign attention, verify source quality, then brief the shift.</p>
+          </div>
+          <button type="button" onClick={() => setActivePage('data')}>
+            <Layers size={16} /> Open analysis workspace
+          </button>
+        </div>
+        <div className="today-priority-grid">
+          {todayPriorityItems.map((item) => (
+            <button key={item.label} type="button" onClick={item.action}>
+              <span>{item.icon}{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.text}</small>
+            </button>
+          ))}
+        </div>
+        <div className="workflow-strip">
+          {dailyWorkflowSteps.map((item) => (
+            <article key={item.step}>
+              <strong>{item.step}</strong>
+              <span>{item.title}</span>
+              <p>{item.text}</p>
+              <small>{item.status}</small>
+            </article>
+          ))}
+        </div>
+        <div className="daily-command-footer">
+          <button type="button" onClick={copyAreaBrief}><Copy size={16} /> Copy shift brief</button>
+          <button type="button" onClick={() => setActivePage('data')}><TrendingUp size={16} /> Review full analysis</button>
+          <a href={mapSearchUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Open Google area</a>
+        </div>
+      </section>
+
+      {false && (
+      <>
       <section id="overview" className="workspace">
         <aside className="control-panel" aria-label="Search and filters">
           <div className="filter-group">
@@ -1650,15 +1730,40 @@ function App() {
 
       </>
       )}
+      </>
+      )}
 
       {activePage === 'data' && (
       <>
       <section className="data-page-heading" aria-label="Data page summary">
         <div>
-          <span className="section-kicker"><Layers size={17} /> Data workspace</span>
-          <h1>Source records, diagnostics, and incident reports</h1>
-          <p>Detailed records are separated from the command analysis page so analysts can inspect evidence without crowding the operational dashboard.</p>
+          <span className="section-kicker"><Layers size={17} /> Analysis & data workspace</span>
+          <h1>Deep analysis, source records, diagnostics, and incident reports</h1>
+          <p>The command page stays focused on today's actions. This second page holds the full analytical workspace and underlying records.</p>
         </div>
+      </section>
+
+      <section className="data-analysis-summary" aria-label="Second page analysis summary">
+        <article>
+          <span><TrendingUp size={17} /> Trend</span>
+          <strong>{trendVerdict}</strong>
+          <p>{selectedTrendWindow.label} volume is {trendDelta >= 0 ? `${trendDelta}% above` : `${Math.abs(trendDelta)}% below`} the prior comparable window.</p>
+        </article>
+        <article>
+          <span><Layers size={17} /> RTCC readiness</span>
+          <strong>{rtccReadiness}%</strong>
+          <p>{coordinateCoverage}% mapped · {averageFieldCompleteness}% field completeness.</p>
+        </article>
+        <article>
+          <span><AlertTriangle size={17} /> Exceptions</span>
+          <strong>{activeExceptionCount}</strong>
+          <p>{activeExceptionCount ? 'Open exception report modules below before finalizing a brief.' : 'No exception flag is above normal threshold.'}</p>
+        </article>
+        <article>
+          <span><MapPin size={17} /> Priority area</span>
+          <strong>{primaryHotspot?.[0] || 'No hotspot'}</strong>
+          <p>{primaryHotspot ? `${primaryHotspot[1]} reports in the current filter.` : 'No repeated location pattern is visible.'}</p>
+        </article>
       </section>
 
       <section className="supporting-section" aria-label="Supporting diagnostics">
