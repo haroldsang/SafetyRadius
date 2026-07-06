@@ -28,22 +28,38 @@ import {
 const CITY_SOURCES = {
   chicago: {
     label: 'Chicago, IL',
+    region: 'Midwest',
+    timeline: 'Long history',
+    coverage: '2001-present',
     source: 'Chicago Data Portal: Crimes - 2001 to Present',
+    portal: 'https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2',
     api: 'https://data.cityofchicago.org/resource/ijzp-q8t2.json?$limit=120&$order=date DESC&$where=latitude IS NOT NULL AND longitude IS NOT NULL',
   },
   losAngeles: {
     label: 'Los Angeles, CA',
+    region: 'West Coast',
+    timeline: 'Recent multi-year',
+    coverage: '2020-present',
     source: 'Los Angeles Open Data: Crime Data from 2020 to Present',
+    portal: 'https://data.lacity.org/Public-Safety/Crime-Data-from-2020-to-Present/2nrs-mtv8',
     api: 'https://data.lacity.org/resource/2nrs-mtv8.json?$limit=120&$order=date_occ DESC&$where=lat > 0 AND lon < 0',
   },
   newYork: {
     label: 'New York, NY',
+    region: 'East Coast',
+    timeline: 'Current year',
+    coverage: 'current year-to-date',
     source: 'NYC Open Data: NYPD Complaint Data Current Year To Date',
+    portal: 'https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Current-Year-To-Date/5uac-w243',
     api: 'https://data.cityofnewyork.us/resource/5uac-w243.json?$limit=120&$order=cmplnt_fr_dt DESC&$where=latitude IS NOT NULL AND longitude IS NOT NULL',
   },
   sanFrancisco: {
     label: 'San Francisco, CA',
+    region: 'West Coast',
+    timeline: 'Recent incident feed',
+    coverage: 'active incident reports',
     source: 'DataSF: Police Department Incident Reports',
+    portal: 'https://data.sfgov.org/Public-Safety/Police-Department-Incident-Reports-2018-to-Present/wg3w-h783',
     api: 'https://data.sfgov.org/resource/wg3w-h783.json?$limit=120&$order=incident_datetime DESC&$where=latitude IS NOT NULL AND longitude IS NOT NULL',
   },
 }
@@ -176,6 +192,9 @@ const TREND_WINDOWS = [
   { key: '180', label: '6M', days: 180, grain: 'month' },
   { key: '365', label: '1Y', days: 365, grain: 'month' },
 ]
+
+const SOURCE_REGIONS = ['All regions', 'East Coast', 'Midwest', 'West Coast']
+const SOURCE_TIMELINES = ['All timelines', 'Current year', 'Recent incident feed', 'Recent multi-year', 'Long history']
 
 const CRIME_TERMS = [
   {
@@ -504,6 +523,8 @@ function App() {
   const [showHeatmap, setShowHeatmap] = useState(true)
   const [reportQuery, setReportQuery] = useState('')
   const [reportSort, setReportSort] = useState('recent')
+  const [sourceRegionFilter, setSourceRegionFilter] = useState('All regions')
+  const [sourceTimelineFilter, setSourceTimelineFilter] = useState('All timelines')
   const [watchProfiles, setWatchProfiles] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY) || '[]')
@@ -715,12 +736,58 @@ function App() {
   }))
   const maxWeekdayCount = Math.max(1, ...dayOfWeekRows.map((item) => item.count))
   const categoryTotal = Math.max(1, categoryCounts.reduce((sum, item) => sum + item.count, 0))
-  const countWithinDays = (days, source = visibleIncidents) => source.filter((incident) => {
+  const sourceCatalogRows = Object.entries(CITY_SOURCES)
+    .map(([key, source]) => ({
+      key,
+      ...source,
+      active: key === cityKey,
+      imported: key === cityKey ? incidents.length : 0,
+    }))
+    .filter((source) => sourceRegionFilter === 'All regions' || source.region === sourceRegionFilter)
+    .filter((source) => sourceTimelineFilter === 'All timelines' || source.timeline === sourceTimelineFilter)
+  const sourceRegionRows = SOURCE_REGIONS.filter((region) => region !== 'All regions').map((region) => ({
+    region,
+    sources: Object.values(CITY_SOURCES).filter((source) => source.region === region).length,
+    active: CITY_SOURCES[cityKey].region === region,
+  }))
+  const timelineSegments = [
+    { label: 'Today', days: 1 },
+    { label: '7 days', days: 7 },
+    { label: '28 days', days: 28 },
+    { label: '3 months', days: 90 },
+    { label: '6 months', days: 180 },
+    { label: '1 year', days: 365 },
+  ].map((segment) => ({
+    ...segment,
+    count: countWithinDays(segment.days),
+    high: countWithinDays(segment.days, visibleIncidents.filter((incident) => incident.severity === 'high')),
+    property: countWithinDays(segment.days, visibleIncidents.filter((incident) => incident.category === 'property')),
+    violent: countWithinDays(segment.days, visibleIncidents.filter((incident) => incident.category === 'violent')),
+  }))
+  const maxTimelineSegmentCount = Math.max(1, ...timelineSegments.map((segment) => segment.count))
+  const areaClassificationRows = hotspotRows.slice(0, 4).map(([area, count]) => {
+    const areaRows = visibleIncidents.filter((incident) => incident.area === area)
+    const recentCount = countWithinDays(28, areaRows)
+    const topCategory = [...CATEGORIES].filter((item) => item.key !== 'all').sort((a, b) => (
+      areaRows.filter((incident) => incident.category === b.key).length
+      - areaRows.filter((incident) => incident.category === a.key).length
+    ))[0]
+    return {
+      area,
+      count,
+      recentCount,
+      topCategory: topCategory?.label || 'Mixed',
+      high: areaRows.filter((incident) => incident.severity === 'high').length,
+    }
+  })
+  function countWithinDays(days, source = visibleIncidents) {
+    return source.filter((incident) => {
     if (!incident.occurredAt) return false
     const occurredAt = new Date(incident.occurredAt)
     if (Number.isNaN(occurredAt.getTime())) return false
     return (Date.now() - occurredAt.getTime()) <= days * 24 * 60 * 60 * 1000
-  }).length
+    }).length
+  }
   const countBetweenDays = (startDay, endDay) => visibleIncidents.filter((incident) => {
     if (!incident.occurredAt) return false
     const occurredAt = new Date(incident.occurredAt)
@@ -1764,6 +1831,93 @@ function App() {
           <strong>{primaryHotspot?.[0] || 'No hotspot'}</strong>
           <p>{primaryHotspot ? `${primaryHotspot[1]} reports in the current filter.` : 'No repeated location pattern is visible.'}</p>
         </article>
+      </section>
+
+      <section className="public-data-section" aria-label="Public crime data source catalog">
+        <div className="public-data-header">
+          <div>
+            <span className="section-kicker"><Layers size={17} /> Public data import catalog</span>
+            <h2>Official open crime sources by region and timeline</h2>
+            <p>Sources are normalized into the same SafeRadius incident format, then classified by region, reporting window, category, severity, and local area.</p>
+          </div>
+          <div className="source-filters">
+            <select value={sourceRegionFilter} onChange={(event) => setSourceRegionFilter(event.target.value)} aria-label="Filter sources by region">
+              {SOURCE_REGIONS.map((region) => <option key={region} value={region}>{region}</option>)}
+            </select>
+            <select value={sourceTimelineFilter} onChange={(event) => setSourceTimelineFilter(event.target.value)} aria-label="Filter sources by timeline">
+              {SOURCE_TIMELINES.map((timeline) => <option key={timeline} value={timeline}>{timeline}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="source-catalog-grid">
+          {sourceCatalogRows.map((source) => (
+            <article className={source.active ? 'active' : ''} key={source.key}>
+              <span>{source.region} · {source.timeline}</span>
+              <strong>{source.label}</strong>
+              <p>{source.source}</p>
+              <div>
+                <small>{source.coverage}</small>
+                <small>{source.imported ? `${source.imported} imported` : 'ready to load'}</small>
+              </div>
+              <button type="button" onClick={() => changeAreaSource(source.key)}>
+                {source.active ? 'Active source' : 'Load source'}
+              </button>
+              <a href={source.portal} target="_blank" rel="noreferrer">Official portal</a>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="classification-section" aria-label="Region and timeline classification">
+        <div className="classification-grid">
+          <article className="classification-card">
+            <div className="panel-heading">
+              <span><MapPin size={17} /> Region coverage</span>
+              <small>{Object.keys(CITY_SOURCES).length} official feeds</small>
+            </div>
+            <div className="region-classification">
+              {sourceRegionRows.map((row) => (
+                <button className={row.active ? 'active' : ''} key={row.region} type="button" onClick={() => setSourceRegionFilter(row.region)}>
+                  <strong>{row.region}</strong>
+                  <span>{row.sources} sources</span>
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="classification-card timeline-classification-card">
+            <div className="panel-heading">
+              <span><CalendarClock size={17} /> Timeline classification</span>
+              <small>{CITY_SOURCES[cityKey].label}</small>
+            </div>
+            <div className="timeline-classification">
+              {timelineSegments.map((segment) => (
+                <button key={segment.label} type="button" onClick={() => setDateWindow(segment.days === 365 ? 'all' : String(segment.days))}>
+                  <span>{segment.label}</span>
+                  <i style={{ width: `${Math.max(5, (segment.count / maxTimelineSegmentCount) * 100)}%` }} />
+                  <strong>{segment.count}</strong>
+                  <small>{segment.high} high · {segment.property} property · {segment.violent} violent</small>
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="classification-card">
+            <div className="panel-heading">
+              <span><Filter size={17} /> Area classification</span>
+              <small>top local areas</small>
+            </div>
+            <div className="area-classification">
+              {areaClassificationRows.map((row) => (
+                <button key={row.area} type="button" onClick={() => setReportQuery(row.area)}>
+                  <strong>{row.area}</strong>
+                  <span>{row.topCategory}</span>
+                  <small>{row.count} total · {row.recentCount} in 28D · {row.high} high</small>
+                </button>
+              ))}
+            </div>
+          </article>
+        </div>
       </section>
 
       <section className="supporting-section" aria-label="Supporting diagnostics">
