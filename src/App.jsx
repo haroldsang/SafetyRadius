@@ -169,6 +169,14 @@ const DATE_WINDOWS = [
   { key: '90', label: '90 days' },
 ]
 
+const TREND_WINDOWS = [
+  { key: '7', label: '7D', days: 7, grain: 'day' },
+  { key: '28', label: '28D', days: 28, grain: 'week' },
+  { key: '90', label: '3M', days: 90, grain: 'month' },
+  { key: '180', label: '6M', days: 180, grain: 'month' },
+  { key: '365', label: '1Y', days: 365, grain: 'month' },
+]
+
 const CRIME_TERMS = [
   {
     term: 'Incident',
@@ -490,6 +498,7 @@ function App() {
   const [category, setCategory] = useState('all')
   const [severity, setSeverity] = useState('all')
   const [dateWindow, setDateWindow] = useState('all')
+  const [trendWindow, setTrendWindow] = useState('28')
   const [quickView, setQuickView] = useState('all')
   const [radius, setRadius] = useState(2)
   const [showHeatmap, setShowHeatmap] = useState(true)
@@ -593,6 +602,18 @@ function App() {
     })
   }, [category, dateWindow, importedAreaCounts, incidents, quickView, severity])
 
+  const trendBaseIncidents = useMemo(() => {
+    return incidents.filter((incident) => {
+      const categoryMatch = category === 'all' || incident.category === category
+      const severityMatch = severity === 'all' || incident.severity === severity
+      const quickMatch = quickView === 'all'
+        || (quickView === 'major' && incident.severity === 'high')
+        || (quickView === 'repeat' && importedAreaCounts[incident.area] > 1)
+        || (quickView === 'property' && incident.category === 'property')
+      return categoryMatch && severityMatch && quickMatch
+    })
+  }, [category, importedAreaCounts, incidents, quickView, severity])
+
   const selectedIncident = visibleIncidents.find((incident) => incident.id === selectedId) || visibleIncidents[0]
   const highCount = visibleIncidents.filter((incident) => incident.severity === 'high').length
   const safetyScore = Math.max(48, 86 - visibleIncidents.length * 3 - highCount * 5)
@@ -640,15 +661,45 @@ function App() {
   const dominantOffense = topIncidentTypes[0]?.[0] || 'No reports'
   const peakBucket = [...timeBuckets].sort((a, b) => b.count - a.count)[0]?.label || 'Unknown'
   const maxTypeCount = Math.max(1, ...topIncidentTypes.map(([, count]) => count))
-  const dailyRows = Object.entries(
+  const selectedTrendWindow = TREND_WINDOWS.find((item) => item.key === trendWindow) || TREND_WINDOWS[1]
+  const trendCutoffMs = Date.now() - selectedTrendWindow.days * 24 * 60 * 60 * 1000
+  const trendIncidents = trendBaseIncidents.filter((incident) => {
+    if (!incident.occurredAt) return false
+    const occurredAt = new Date(incident.occurredAt)
+    return !Number.isNaN(occurredAt.getTime()) && occurredAt.getTime() >= trendCutoffMs
+  })
+  const sortedTrendIncidents = [...trendIncidents].sort((a, b) => new Date(a.occurredAt) - new Date(b.occurredAt))
+  const trendRows = Object.entries(
+    sortedTrendIncidents.reduce((counts, incident) => {
+      const occurredAt = new Date(incident.occurredAt)
+      const key = selectedTrendWindow.grain === 'day'
+        ? occurredAt.toLocaleDateString([], { month: 'short', day: 'numeric' })
+        : selectedTrendWindow.grain === 'week'
+          ? `W${Math.ceil(occurredAt.getDate() / 7)} ${occurredAt.toLocaleDateString([], { month: 'short' })}`
+          : occurredAt.toLocaleDateString([], { month: 'short', year: '2-digit' })
+      counts[key] = (counts[key] || 0) + 1
+      return counts
+    }, {}),
+  ).slice(-(selectedTrendWindow.grain === 'day' ? 7 : selectedTrendWindow.grain === 'week' ? 4 : 6))
+  const dailyRows = trendRows.length ? trendRows : Object.entries(
     visibleIncidents.reduce((counts, incident) => {
       const key = incident.occurredAt ? new Date(incident.occurredAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) : incident.time
       counts[key] = (counts[key] || 0) + 1
       return counts
     }, {}),
-  )
-    .slice(0, 7)
+  ).slice(0, 7)
   const maxDailyCount = Math.max(1, ...dailyRows.map(([, count]) => count))
+  const previousTrendCount = trendBaseIncidents.filter((incident) => {
+    if (!incident.occurredAt) return false
+    const occurredAt = new Date(incident.occurredAt)
+    if (Number.isNaN(occurredAt.getTime())) return false
+    const timestamp = occurredAt.getTime()
+    return timestamp < trendCutoffMs && timestamp >= trendCutoffMs - selectedTrendWindow.days * 24 * 60 * 60 * 1000
+  }).length
+  const trendDelta = previousTrendCount
+    ? Math.round(((trendIncidents.length - previousTrendCount) / previousTrendCount) * 100)
+    : trendIncidents.length ? 100 : 0
+  const trendVerdict = trendDelta > 10 ? 'Rising' : trendDelta < -10 ? 'Cooling' : 'Stable'
   const trendPoints = dailyRows.map(([, count], index) => {
     const x = dailyRows.length <= 1 ? 50 : (index / (dailyRows.length - 1)) * 100
     const y = 100 - ((count / maxDailyCount) * 86 + 7)
@@ -703,24 +754,6 @@ function App() {
   )
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4)
-  const eastCoastIncidents = cityKey === 'newYork' ? visibleIncidents : incidents.filter((incident) => incident.sourceCity === CITY_SOURCES.newYork.label)
-  const eastCoastBoroughRows = Object.entries(
-    eastCoastIncidents.reduce((counts, incident) => {
-      counts[incident.area] = (counts[incident.area] || 0) + 1
-      return counts
-    }, {}),
-  )
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-  const maxBoroughCount = Math.max(1, ...eastCoastBoroughRows.map(([, count]) => count))
-  const eastCoastFelonyCount = eastCoastIncidents.filter((incident) => `${incident.status} ${incident.summary}`.toLowerCase().includes('felony')).length
-  const eastCoastNightCount = eastCoastIncidents.filter((incident) => incident.timeBucket === 'Evening' || incident.timeBucket === 'Overnight').length
-  const eastCoastPropertyCount = eastCoastIncidents.filter((incident) => incident.category === 'property').length
-  const eastCoastViolentCount = eastCoastIncidents.filter((incident) => incident.category === 'violent').length
-  const eastCoastTotal = Math.max(1, eastCoastIncidents.length)
-  const eastCoastConclusion = eastCoastIncidents.length
-    ? `${eastCoastPropertyCount >= eastCoastViolentCount ? 'Property-related reports dominate' : 'Violent-category reports are comparatively prominent'} in the East Coast view, with ${Math.round((eastCoastNightCount / eastCoastTotal) * 100)}% occurring in evening or overnight bands.`
-    : 'Switch to New York to load East Coast official complaint data for regional analysis.'
   const reportRows = visibleIncidents
     .filter((incident) => {
       const haystack = `${incident.type} ${incident.area} ${incident.status} ${incident.sourceId || ''}`.toLowerCase()
@@ -1069,20 +1102,20 @@ function App() {
             </div>
           </section>
 
-          <div className="mini-analytics">
-            <span className="section-kicker"><TrendingUp size={16} /> Live pattern</span>
-            <div className="type-cloud">
-              {topIncidentTypes.map(([type, count]) => (
-                <button key={type} type="button" onClick={() => setCategory('all')}>
-                  {type}<strong>{count}</strong>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="compact-brief">
-            <span className="section-kicker"><Sparkles size={16} /> Brief</span>
-            <p>Property and public-order reports dominate the current import. Use severity and time filters to narrow the map before opening Google routing.</p>
+          <div className="triage-card">
+            <span className="section-kicker"><Siren size={16} /> Triage queue</span>
+            <button type="button" onClick={() => setQuickView('major')}>
+              <strong>{unreviewedHighCount}</strong>
+              <span>unreviewed high</span>
+            </button>
+            <button type="button" onClick={() => setQuickView('repeat')}>
+              <strong>{repeatAreaCount}</strong>
+              <span>repeat areas</span>
+            </button>
+            <button type="button" onClick={() => setReportQuery(peakBucket)}>
+              <strong>{peakBucket}</strong>
+              <span>watch window</span>
+            </button>
           </div>
         </aside>
 
@@ -1257,10 +1290,27 @@ function App() {
         <div className="visuals-grid">
           <article className="visual-card trend-visual">
             <div className="panel-heading">
-              <span><TrendingUp size={17} /> Daily trend</span>
-              <small>Recent records</small>
+              <span><TrendingUp size={17} /> Trend</span>
+              <small>{selectedTrendWindow.label} window</small>
             </div>
-            <svg viewBox="0 0 100 100" role="img" aria-label="Daily incident trend line">
+            <div className="trend-window-tabs" aria-label="Trend window">
+              {TREND_WINDOWS.map((item) => (
+                <button
+                  className={trendWindow === item.key ? 'active' : ''}
+                  key={item.key}
+                  type="button"
+                  onClick={() => setTrendWindow(item.key)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div className="trend-summary">
+              <span><strong>{trendIncidents.length}</strong><small>records</small></span>
+              <span><strong>{trendDelta >= 0 ? `+${trendDelta}%` : `${trendDelta}%`}</strong><small>vs prior</small></span>
+              <span><strong>{trendVerdict}</strong><small>signal</small></span>
+            </div>
+            <svg viewBox="0 0 100 100" role="img" aria-label={`${selectedTrendWindow.label} incident trend line`}>
               <polyline points={trendPoints || '0,92 100,92'} />
               {dailyRows.map(([day, count], index) => {
                 const x = dailyRows.length <= 1 ? 50 : (index / (dailyRows.length - 1)) * 100
@@ -1456,59 +1506,35 @@ function App() {
         </div>
       </section>
 
-      <section id="east-coast" className="powerbi-section" aria-label="East Coast crime analysis dashboard">
+      <section id="command-actions" className="powerbi-section command-actions-section" aria-label="Command action recommendations">
         <div className="powerbi-header">
           <div>
-            <span className="section-kicker"><TrendingUp size={17} /> East Coast analysis</span>
-            <h2>New York official complaint data summary</h2>
-            <p>{eastCoastConclusion}</p>
+            <span className="section-kicker"><CheckCircle2 size={17} /> Command actions</span>
+            <h2>Decision support for the selected area</h2>
+            <p>Common public-safety products turn map activity into shift briefing, deployment, alerting, and evidence-review actions.</p>
           </div>
-          <button type="button" onClick={() => changeAreaSource('newYork')}>
-            Load NYC data
-          </button>
+          <button type="button" onClick={copyAreaBrief}><Copy size={16} /> Copy shift brief</button>
         </div>
-        <div className="powerbi-grid">
-          <article className="kpi-tile">
-            <span>Total records</span>
-            <strong>{eastCoastIncidents.length}</strong>
-            <small>NYC official source records currently loaded</small>
+        <div className="command-action-grid">
+          <article>
+            <span><Bell size={17} /> Alert threshold</span>
+            <strong>{highCount ? 'Major-first alerts' : 'Standard monitoring'}</strong>
+            <p>{highCount ? `${highCount} high-severity records should stay above routine feed traffic.` : 'No high-severity records in the current filter; keep routine monitoring active.'}</p>
           </article>
-          <article className="kpi-tile">
-            <span>Felony signal</span>
-            <strong>{Math.round((eastCoastFelonyCount / eastCoastTotal) * 100)}%</strong>
-            <small>records carrying felony classification text</small>
+          <article>
+            <span><Route size={17} /> Deployment focus</span>
+            <strong>{primaryHotspot?.[0] || 'No repeat zone'}</strong>
+            <p>{primaryHotspot ? `Prioritize visibility near ${primaryHotspot[0]} during ${peakBucket.toLowerCase()} activity.` : 'No place concentration is strong enough for a dedicated deployment cue.'}</p>
           </article>
-          <article className="kpi-tile">
-            <span>Night / evening</span>
-            <strong>{Math.round((eastCoastNightCount / eastCoastTotal) * 100)}%</strong>
-            <small>evening or overnight report band</small>
+          <article>
+            <span><Layers size={17} /> Evidence review</span>
+            <strong>{averageFieldCompleteness}% source quality</strong>
+            <p>{coordinateCoverage}% of current records are mapped. Low coverage should trigger source audit before briefing commanders.</p>
           </article>
-          <article className="kpi-tile">
-            <span>Property vs violent</span>
-            <strong>{eastCoastPropertyCount}:{eastCoastViolentCount}</strong>
-            <small>normalized analytical category ratio</small>
-          </article>
-          <article className="chart-card wide">
-            <div className="panel-heading">
-              <span><MapPin size={17} /> Borough / area distribution</span>
-              <small>Top 5</small>
-            </div>
-            <div className="horizontal-bars">
-              {eastCoastBoroughRows.map(([area, count]) => (
-                <button key={area} type="button" onClick={() => setReportQuery(area)}>
-                  <span>{area}</span>
-                  <i style={{ width: `${Math.max(8, (count / maxBoroughCount) * 100)}%` }} />
-                  <strong>{count}</strong>
-                </button>
-              ))}
-            </div>
-          </article>
-          <article className="chart-card">
-            <div className="donut-chart" style={{ '--slice-a': `${Math.round((eastCoastPropertyCount / eastCoastTotal) * 100)}%` }}>
-              <strong>{Math.round((eastCoastPropertyCount / eastCoastTotal) * 100)}%</strong>
-              <span>property</span>
-            </div>
-            <p>Normalized category split helps new users understand broad risk type, while preserving source-specific labels in reports.</p>
+          <article>
+            <span><TrendingUp size={17} /> Trend posture</span>
+            <strong>{trendVerdict}</strong>
+            <p>{selectedTrendWindow.label} volume is {trendDelta >= 0 ? `${trendDelta}% above` : `${Math.abs(trendDelta)}% below`} the prior comparable window.</p>
           </article>
         </div>
       </section>
