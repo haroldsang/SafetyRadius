@@ -649,6 +649,21 @@ function App() {
   )
     .slice(0, 7)
   const maxDailyCount = Math.max(1, ...dailyRows.map(([, count]) => count))
+  const trendPoints = dailyRows.map(([, count], index) => {
+    const x = dailyRows.length <= 1 ? 50 : (index / (dailyRows.length - 1)) * 100
+    const y = 100 - ((count / maxDailyCount) * 86 + 7)
+    return `${x},${y}`
+  }).join(' ')
+  const dayOfWeekRows = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label, index) => ({
+    label,
+    count: visibleIncidents.filter((incident) => {
+      if (!incident.occurredAt) return false
+      const occurredAt = new Date(incident.occurredAt)
+      return !Number.isNaN(occurredAt.getTime()) && occurredAt.getDay() === index
+    }).length,
+  }))
+  const maxWeekdayCount = Math.max(1, ...dayOfWeekRows.map((item) => item.count))
+  const categoryTotal = Math.max(1, categoryCounts.reduce((sum, item) => sum + item.count, 0))
   const countWithinDays = (days, source = visibleIncidents) => source.filter((incident) => {
     if (!incident.occurredAt) return false
     const occurredAt = new Date(incident.occurredAt)
@@ -841,6 +856,16 @@ function App() {
     setQuickView(profile.quickView)
   }
 
+  function changeAreaSource(nextCityKey) {
+    setCityKey(nextCityKey)
+    setQuery(CITY_SOURCES[nextCityKey].label)
+    setCategory('all')
+    setSeverity('all')
+    setDateWindow('all')
+    setQuickView('all')
+    setReportQuery('')
+  }
+
   function resetFilters() {
     setCategory('all')
     setSeverity('all')
@@ -939,33 +964,14 @@ function App() {
       <>
       <section className="crime-map-heading" aria-label="Crime map query summary">
         <div>
-          <span>Crime Map</span>
+          <span>Global Area Filter</span>
           <h1>{CITY_SOURCES[cityKey].label} public safety map</h1>
-          <p>{dataState.source}</p>
-        </div>
-        <div className="crime-map-metrics">
-          <span><strong>{visibleIncidents.length}</strong><small>filtered reports</small></span>
-          <span><strong>{riskLevel}</strong><small>risk level</small></span>
-          <span><strong>{averageFieldCompleteness}%</strong><small>source quality</small></span>
-        </div>
-      </section>
-
-      <section id="overview" className="workspace">
-        <aside className="control-panel" aria-label="Search and filters">
-          <div className="search-card">
-            <label htmlFor="location-search">Location</label>
+          <p>All pages and analysis modules use this selected area and official source context.</p>
+          <div className="global-area-filter">
             <select
-              className="city-select"
               value={cityKey}
-              onChange={(event) => {
-                const nextCityKey = event.target.value
-                setCityKey(nextCityKey)
-                setQuery(CITY_SOURCES[nextCityKey].label)
-                setCategory('all')
-                setSeverity('all')
-                setReportQuery('')
-              }}
-              aria-label="Select city data source"
+              onChange={(event) => changeAreaSource(event.target.value)}
+              aria-label="Select global area data source"
             >
               {Object.entries(CITY_SOURCES).map(([key, city]) => (
                 <option key={key} value={key}>{city.label}</option>
@@ -977,19 +983,24 @@ function App() {
                 id="location-search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="City, address, or ZIP"
+                placeholder="Global city, address, or ZIP"
               />
             </div>
-            <div className="address-actions">
-              <a href={mapSearchUrl} target="_blank" rel="noreferrer">
-                <ExternalLink size={16} /> Open in Google Maps
-              </a>
-              <a href={selectedDirectionsUrl} target="_blank" rel="noreferrer">
-                <Navigation size={16} /> Route to selected report
-              </a>
-            </div>
+            <a href={mapSearchUrl} target="_blank" rel="noreferrer">
+              <ExternalLink size={16} /> Google Maps
+            </a>
           </div>
+          <small className="global-source-note">{dataState.source}</small>
+        </div>
+        <div className="crime-map-metrics">
+          <span><strong>{visibleIncidents.length}</strong><small>filtered reports</small></span>
+          <span><strong>{riskLevel}</strong><small>risk level</small></span>
+          <span><strong>{averageFieldCompleteness}%</strong><small>source quality</small></span>
+        </div>
+      </section>
 
+      <section id="overview" className="workspace">
+        <aside className="control-panel" aria-label="Search and filters">
           <div className="filter-group">
             <div className="panel-heading">
               <span><Filter size={17} /> Filters</span>
@@ -1235,6 +1246,74 @@ function App() {
         </div>
       </section>
 
+      <section className="analysis-visuals-section" aria-label="Analysis charts">
+        <div className="visuals-header">
+          <div>
+            <span className="section-kicker"><TrendingUp size={17} /> Analysis visuals</span>
+            <h2>Fast-read charts for command decisions</h2>
+          </div>
+          <p>All visuals use the global area filter: {query || CITY_SOURCES[cityKey].label}</p>
+        </div>
+        <div className="visuals-grid">
+          <article className="visual-card trend-visual">
+            <div className="panel-heading">
+              <span><TrendingUp size={17} /> Daily trend</span>
+              <small>Recent records</small>
+            </div>
+            <svg viewBox="0 0 100 100" role="img" aria-label="Daily incident trend line">
+              <polyline points={trendPoints || '0,92 100,92'} />
+              {dailyRows.map(([day, count], index) => {
+                const x = dailyRows.length <= 1 ? 50 : (index / (dailyRows.length - 1)) * 100
+                const y = 100 - ((count / maxDailyCount) * 86 + 7)
+                return <circle key={day} cx={x} cy={y} r="2.8" />
+              })}
+            </svg>
+            <div className="trend-labels">
+              {dailyRows.map(([day, count]) => (
+                <span key={day}><strong>{count}</strong><small>{day}</small></span>
+              ))}
+            </div>
+          </article>
+
+          <article className="visual-card">
+            <div className="panel-heading">
+              <span><CalendarClock size={17} /> Day-of-week pattern</span>
+              <small>Current filter</small>
+            </div>
+            <div className="weekday-chart">
+              {dayOfWeekRows.map((item) => (
+                <button key={item.label} type="button" onClick={() => setReportQuery(item.label)}>
+                  <i style={{ height: `${Math.max(8, (item.count / maxWeekdayCount) * 100)}%` }} />
+                  <span>{item.label}</span>
+                  <strong>{item.count}</strong>
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="visual-card">
+            <div className="panel-heading">
+              <span><Filter size={17} /> Offense category split</span>
+              <small>{visibleIncidents.length} reports</small>
+            </div>
+            <div className="category-stack">
+              {categoryCounts.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  style={{ '--share': `${Math.max(4, (item.count / categoryTotal) * 100)}%` }}
+                  onClick={() => setCategory(item.key)}
+                >
+                  <span>{item.label}</span>
+                  <i />
+                  <strong>{Math.round((item.count / categoryTotal) * 100)}%</strong>
+                </button>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section id="compstat" className="powerbi-section compstat-section" aria-label="CompStat analysis view">
         <div className="powerbi-header">
           <div>
@@ -1384,14 +1463,7 @@ function App() {
             <h2>New York official complaint data summary</h2>
             <p>{eastCoastConclusion}</p>
           </div>
-          <button type="button" onClick={() => {
-            setCityKey('newYork')
-            setQuery(CITY_SOURCES.newYork.label)
-            setCategory('all')
-            setSeverity('all')
-            setDateWindow('all')
-            setQuickView('all')
-          }}>
+          <button type="button" onClick={() => changeAreaSource('newYork')}>
             Load NYC data
           </button>
         </div>
@@ -1598,15 +1670,7 @@ function App() {
                 className={cityKey === key ? 'active' : ''}
                 key={key}
                 type="button"
-                onClick={() => {
-                  setCityKey(key)
-                  setQuery(city.label)
-                  setCategory('all')
-                  setSeverity('all')
-                  setDateWindow('all')
-                  setQuickView('all')
-                  setReportQuery('')
-                }}
+                onClick={() => changeAreaSource(key)}
               >
                 <strong>{city.label.split(',')[0]}</strong>
                 <small>{cityKey === key ? 'active' : 'available'}</small>
