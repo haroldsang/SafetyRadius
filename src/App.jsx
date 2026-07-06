@@ -7,6 +7,7 @@ import {
   ChevronDown,
   CircleDot,
   Clock3,
+  Download,
   ExternalLink,
   Filter,
   Home,
@@ -147,6 +148,13 @@ const SEVERITIES = [
   { key: 'high', label: 'High' },
   { key: 'medium', label: 'Medium' },
   { key: 'low', label: 'Low' },
+]
+
+const DATE_WINDOWS = [
+  { key: 'all', label: 'All dates' },
+  { key: '7', label: '7 days' },
+  { key: '30', label: '30 days' },
+  { key: '90', label: '90 days' },
 ]
 
 const severityClass = {
@@ -323,6 +331,8 @@ function App() {
   const [query, setQuery] = useState('Chicago, IL')
   const [category, setCategory] = useState('all')
   const [severity, setSeverity] = useState('all')
+  const [dateWindow, setDateWindow] = useState('all')
+  const [quickView, setQuickView] = useState('all')
   const [radius, setRadius] = useState(2)
   const [showHeatmap, setShowHeatmap] = useState(true)
   const [reportQuery, setReportQuery] = useState('')
@@ -375,13 +385,25 @@ function App() {
     }
   }, [cityKey])
 
+  const importedAreaCounts = useMemo(() => incidents.reduce((counts, incident) => {
+    counts[incident.area] = (counts[incident.area] || 0) + 1
+    return counts
+  }, {}), [incidents])
+
   const visibleIncidents = useMemo(() => {
     return incidents.filter((incident) => {
       const categoryMatch = category === 'all' || incident.category === category
       const severityMatch = severity === 'all' || incident.severity === severity
-      return categoryMatch && severityMatch
+      const occurredAt = incident.occurredAt ? new Date(incident.occurredAt) : null
+      const dateMatch = dateWindow === 'all'
+        || (occurredAt && !Number.isNaN(occurredAt.getTime()) && (Date.now() - occurredAt.getTime()) <= Number(dateWindow) * 24 * 60 * 60 * 1000)
+      const quickMatch = quickView === 'all'
+        || (quickView === 'major' && incident.severity === 'high')
+        || (quickView === 'repeat' && importedAreaCounts[incident.area] > 1)
+        || (quickView === 'property' && incident.category === 'property')
+      return categoryMatch && severityMatch && dateMatch && quickMatch
     })
-  }, [category, incidents, severity])
+  }, [category, dateWindow, importedAreaCounts, incidents, quickView, severity])
 
   const selectedIncident = visibleIncidents.find((incident) => incident.id === selectedId) || visibleIncidents[0]
   const highCount = visibleIncidents.filter((incident) => incident.severity === 'high').length
@@ -461,6 +483,38 @@ function App() {
     return { index, count }
   })
   const maxDensity = Math.max(1, ...densityCells.map((cell) => cell.count))
+  const selectedSimilarCount = selectedIncident
+    ? visibleIncidents.filter((incident) => incident.type === selectedIncident.type).length
+    : 0
+  const selectedAreaCount = selectedIncident
+    ? visibleIncidents.filter((incident) => incident.area === selectedIncident.area).length
+    : 0
+
+  function exportReportsCsv() {
+    const headers = ['case', 'type', 'severity', 'category', 'area', 'status', 'time', 'source']
+    const rows = reportRows.map((incident) => [
+      incident.sourceId || incident.id,
+      incident.type,
+      incident.severity,
+      incident.category,
+      incident.area,
+      incident.status,
+      incident.time,
+      dataState.source,
+    ])
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell || '').replaceAll('"', '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `saferadius-${cityKey}-reports.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <main className="app-shell">
@@ -563,6 +617,18 @@ function App() {
                 </button>
               ))}
             </div>
+            <div className="date-filter" aria-label="Date range filter">
+              {DATE_WINDOWS.map((item) => (
+                <button
+                  className={dateWindow === item.key ? 'active' : ''}
+                  key={item.key}
+                  type="button"
+                  onClick={() => setDateWindow(item.key)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <section id="score" className="score-card">
@@ -617,6 +683,24 @@ function App() {
             ))}
           </div>
 
+          <div className="quick-views" aria-label="Quick map views">
+            {[
+              ['all', 'All'],
+              ['major', 'Major alerts'],
+              ['repeat', 'Repeat areas'],
+              ['property', 'Property risk'],
+            ].map(([key, label]) => (
+              <button
+                className={quickView === key ? 'active' : ''}
+                key={key}
+                type="button"
+                onClick={() => setQuickView(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <div className="map-canvas">
             <span className="street street-a" />
             <span className="street street-b" />
@@ -657,6 +741,8 @@ function App() {
                 <div><dt>When</dt><dd>{selectedIncident.time}</dd></div>
                 <div><dt>Status</dt><dd>{selectedIncident.status}</dd></div>
                 {selectedIncident.sourceId && <div><dt>Case</dt><dd>{selectedIncident.sourceId}</dd></div>}
+                <div><dt>Similar</dt><dd>{selectedSimilarCount}</dd></div>
+                <div><dt>Area repeat</dt><dd>{selectedAreaCount}</dd></div>
               </dl>
               <div className="drawer-actions">
                 <a href={selectedMapsUrl} target="_blank" rel="noreferrer"><MapPin size={16} /> View location</a>
@@ -851,6 +937,7 @@ function App() {
           <div>
             <span className="section-kicker"><CalendarClock size={17} /> Incident reports</span>
             <h2>Filtered public reports</h2>
+            <p>{reportRows.length} reports match current filters</p>
           </div>
           <div className="reports-tools">
             <div className="search-input">
@@ -866,6 +953,9 @@ function App() {
               <option value="severity">Severity</option>
               <option value="area">Area</option>
             </select>
+            <button type="button" onClick={exportReportsCsv}>
+              <Download size={16} /> Export CSV
+            </button>
           </div>
           <div className="source-note">
             <strong>{dataState.source}</strong>

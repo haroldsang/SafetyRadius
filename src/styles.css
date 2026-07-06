@@ -283,14 +283,20 @@ p {
   accent-color: #153f57;
 }
 
-.severity-filter {
+.severity-filter,
+.date-filter {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 7px;
   margin-top: 14px;
 }
 
-.severity-filter button {
+.date-filter {
+  margin-top: 8px;
+}
+
+.severity-filter button,
+.date-filter button {
   min-height: 34px;
   border: 1px solid rgba(21, 32, 43, 0.1);
   border-radius: 8px;
@@ -300,7 +306,8 @@ p {
   font-weight: 850;
 }
 
-.severity-filter button.active {
+.severity-filter button.active,
+.date-filter button.active {
   color: #ffffff;
   border-color: #153f57;
   background: #153f57;
@@ -469,6 +476,33 @@ p {
 .map-stats small {
   color: #657380;
   font-weight: 800;
+}
+
+.quick-views {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 14px 12px;
+  border-bottom: 1px solid rgba(21, 32, 43, 0.08);
+  background: rgba(247, 250, 251, 0.82);
+}
+
+.quick-views button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  border: 1px solid rgba(21, 32, 43, 0.1);
+  border-radius: 999px;
+  padding: 0 12px;
+  color: #4b5b67;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.quick-views button.active {
+  color: #ffffff;
+  border-color: #153f57;
+  background: #153f57;
 }
 
 .map-canvas {
@@ -1071,9 +1105,15 @@ p {
   font-size: 24px;
 }
 
+.reports-header p {
+  margin-top: 4px;
+  color: #657380;
+  font-weight: 800;
+}
+
 .reports-tools {
   display: grid;
-  grid-template-columns: 1fr 150px;
+  grid-template-columns: 1fr 150px 132px;
   gap: 10px;
 }
 
@@ -1088,6 +1128,19 @@ p {
   padding: 0 10px;
   color: #33424f;
   background: #f7fafb;
+  font-weight: 850;
+}
+
+.reports-tools button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 48px;
+  border: 1px solid #153f57;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #153f57;
   font-weight: 850;
 }
 
