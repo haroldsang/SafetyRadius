@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   Bell,
@@ -20,7 +20,10 @@ import {
   TrendingUp,
 } from 'lucide-react'
 
-const INCIDENTS = [
+const CHICAGO_CRIME_API =
+  'https://data.cityofchicago.org/resource/ijzp-q8t2.json?$limit=120&$order=date DESC&$where=latitude IS NOT NULL AND longitude IS NOT NULL'
+
+const FALLBACK_INCIDENTS = [
   {
     id: 'sr-1042',
     type: 'Vehicle break-in',
@@ -133,15 +136,154 @@ const severityClass = {
   low: 'severity-low',
 }
 
+const violentTypes = new Set([
+  'ASSAULT',
+  'BATTERY',
+  'CRIMINAL SEXUAL ASSAULT',
+  'HOMICIDE',
+  'KIDNAPPING',
+  'ROBBERY',
+  'WEAPONS VIOLATION',
+])
+
+const propertyTypes = new Set([
+  'ARSON',
+  'BURGLARY',
+  'CRIMINAL DAMAGE',
+  'MOTOR VEHICLE THEFT',
+  'THEFT',
+])
+
+function getIncidentCategory(type = '') {
+  if (violentTypes.has(type)) return 'violent'
+  if (propertyTypes.has(type)) return 'property'
+  return 'quality'
+}
+
+function getIncidentSeverity(type = '') {
+  if (['HOMICIDE', 'ROBBERY', 'CRIMINAL SEXUAL ASSAULT', 'WEAPONS VIOLATION'].includes(type)) return 'high'
+  if (['ASSAULT', 'BATTERY', 'BURGLARY', 'MOTOR VEHICLE THEFT', 'ARSON'].includes(type)) return 'medium'
+  return 'low'
+}
+
+function formatTimeAgo(value) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Recently'
+  const minutes = Math.max(1, Math.round((Date.now() - date.getTime()) / 60000))
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours} hr ago`
+  const days = Math.round(hours / 24)
+  if (days === 1) return 'Yesterday'
+  return `${days} days ago`
+}
+
+function formatHour(value) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Unknown'
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+}
+
+function normalizeChicagoIncident(record) {
+  const type = record.primary_type || 'Public safety report'
+  const category = getIncidentCategory(type)
+  const severity = getIncidentSeverity(type)
+  const latitude = Number(record.latitude)
+  const longitude = Number(record.longitude)
+
+  return {
+    id: `chi-${record.id}`,
+    type: type
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase()),
+    severity,
+    category,
+    time: formatTimeAgo(record.date),
+    hour: formatHour(record.date),
+    distance: 'Chicago',
+    area: record.block || record.location_description || 'Chicago',
+    address: record.location_description || 'Public right of way',
+    status: record.arrest === true || record.arrest === 'true' ? 'arrest reported' : 'reported',
+    summary: `${record.description || type} reported at ${record.block || 'a Chicago location'}${record.location_description ? ` near ${record.location_description.toLowerCase()}` : ''}.`,
+    latitude,
+    longitude,
+    sourceId: record.case_number,
+    updatedOn: record.updated_on,
+  }
+}
+
+function addMapPositions(incidents) {
+  const geocoded = incidents.filter((incident) => Number.isFinite(incident.latitude) && Number.isFinite(incident.longitude))
+  if (!geocoded.length) return incidents
+
+  const latitudes = geocoded.map((incident) => incident.latitude)
+  const longitudes = geocoded.map((incident) => incident.longitude)
+  const minLat = Math.min(...latitudes)
+  const maxLat = Math.max(...latitudes)
+  const minLng = Math.min(...longitudes)
+  const maxLng = Math.max(...longitudes)
+  const latRange = maxLat - minLat || 1
+  const lngRange = maxLng - minLng || 1
+
+  return incidents.map((incident) => {
+    if (!Number.isFinite(incident.latitude) || !Number.isFinite(incident.longitude)) return incident
+    return {
+      ...incident,
+      x: 10 + ((incident.longitude - minLng) / lngRange) * 80,
+      y: 10 + ((maxLat - incident.latitude) / latRange) * 80,
+    }
+  })
+}
+
 function App() {
-  const [query, setQuery] = useState('San Francisco, CA')
+  const [query, setQuery] = useState('Chicago, IL')
   const [category, setCategory] = useState('all')
   const [radius, setRadius] = useState(2)
-  const [selectedId, setSelectedId] = useState(INCIDENTS[0].id)
+  const [incidents, setIncidents] = useState(addMapPositions(FALLBACK_INCIDENTS))
+  const [dataState, setDataState] = useState({
+    label: 'Loading Chicago open crime data',
+    source: 'Chicago Data Portal',
+    updatedAt: '',
+  })
+  const [selectedId, setSelectedId] = useState(FALLBACK_INCIDENTS[0].id)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadChicagoCrimeData() {
+      try {
+        const response = await fetch(CHICAGO_CRIME_API)
+        if (!response.ok) throw new Error(`Chicago API returned ${response.status}`)
+        const records = await response.json()
+        const normalized = addMapPositions(records.map(normalizeChicagoIncident))
+
+        if (!isMounted || !normalized.length) return
+        setIncidents(normalized)
+        setSelectedId(normalized[0].id)
+        setDataState({
+          label: `${normalized.length} recent public reports imported`,
+          source: 'Chicago Data Portal: Crimes - 2001 to Present',
+          updatedAt: normalized[0].updatedOn || normalized[0].hour,
+        })
+      } catch (error) {
+        if (!isMounted) return
+        setDataState({
+          label: 'Using local sample because the live API is unavailable',
+          source: 'Local SafeRadius fallback',
+          updatedAt: error.message,
+        })
+      }
+    }
+
+    loadChicagoCrimeData()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const visibleIncidents = useMemo(() => {
-    return INCIDENTS.filter((incident) => category === 'all' || incident.category === category)
-  }, [category])
+    return incidents.filter((incident) => category === 'all' || incident.category === category)
+  }, [category, incidents])
 
   const selectedIncident = visibleIncidents.find((incident) => incident.id === selectedId) || visibleIncidents[0]
   const highCount = visibleIncidents.filter((incident) => incident.severity === 'high').length
@@ -191,11 +333,11 @@ function App() {
                   className={category === item.key ? 'active' : ''}
                   key={item.key}
                   type="button"
-                  onClick={() => {
-                    setCategory(item.key)
-                    setSelectedId(INCIDENTS.find((incident) => item.key === 'all' || incident.category === item.key)?.id)
-                  }}
-                >
+                onClick={() => {
+                  setCategory(item.key)
+                    setSelectedId(incidents.find((incident) => item.key === 'all' || incident.category === item.key)?.id)
+                }}
+              >
                   {item.label}
                 </button>
               ))}
@@ -236,9 +378,10 @@ function App() {
         <section id="map" className="map-stage" aria-label="Incident map">
           <div className="map-toolbar">
             <div>
-              <span>Live area overview</span>
-              <strong>{query || 'Selected area'}</strong>
-            </div>
+            <span>Live area overview</span>
+            <strong>{query || 'Selected area'}</strong>
+              <small>{dataState.label}</small>
+          </div>
             <button type="button">
               <Layers size={17} />
               Heatmap
@@ -281,6 +424,7 @@ function App() {
                 <div><dt>Area</dt><dd>{selectedIncident.area}</dd></div>
                 <div><dt>When</dt><dd>{selectedIncident.time}</dd></div>
                 <div><dt>Status</dt><dd>{selectedIncident.status}</dd></div>
+                {selectedIncident.sourceId && <div><dt>Case</dt><dd>{selectedIncident.sourceId}</dd></div>}
               </dl>
             </article>
           )}
@@ -290,6 +434,10 @@ function App() {
           <div className="panel-heading feed-heading">
             <span><CalendarClock size={17} /> Nearby incident feed</span>
             <small>{visibleIncidents.length} reports</small>
+          </div>
+          <div className="source-note">
+            <strong>{dataState.source}</strong>
+            <span>{dataState.updatedAt ? `Latest update: ${dataState.updatedAt}` : 'Live public-data import'}</span>
           </div>
           <div className="incident-list">
             {visibleIncidents.map((incident) => (

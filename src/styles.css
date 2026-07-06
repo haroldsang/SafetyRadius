@@ -325,6 +325,13 @@ p {
   font-size: 22px;
 }
 
+.map-toolbar small {
+  display: block;
+  margin-top: 4px;
+  color: #657380;
+  font-weight: 750;
+}
+
 .map-canvas {
   position: relative;
   min-height: 520px;
@@ -514,6 +521,26 @@ p {
 .panel-heading small {
   color: #657380;
   font-weight: 800;
+}
+
+.source-note {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(27, 138, 116, 0.16);
+  border-radius: 8px;
+  padding: 11px;
+  background: #f0faf7;
+}
+
+.source-note strong {
+  color: #153f57;
+  font-size: 13px;
+}
+
+.source-note span {
+  color: #657380;
+  font-size: 12px;
+  font-weight: 750;
 }
 
 .incident-list {
