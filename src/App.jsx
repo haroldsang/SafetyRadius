@@ -624,8 +624,45 @@ function App() {
   )
     .slice(0, 7)
   const maxDailyCount = Math.max(1, ...dailyRows.map(([, count]) => count))
+  const countWithinDays = (days, source = visibleIncidents) => source.filter((incident) => {
+    if (!incident.occurredAt) return false
+    const occurredAt = new Date(incident.occurredAt)
+    if (Number.isNaN(occurredAt.getTime())) return false
+    return (Date.now() - occurredAt.getTime()) <= days * 24 * 60 * 60 * 1000
+  }).length
+  const countBetweenDays = (startDay, endDay) => visibleIncidents.filter((incident) => {
+    if (!incident.occurredAt) return false
+    const occurredAt = new Date(incident.occurredAt)
+    if (Number.isNaN(occurredAt.getTime())) return false
+    const ageDays = (Date.now() - occurredAt.getTime()) / (24 * 60 * 60 * 1000)
+    return ageDays > startDay && ageDays <= endDay
+  }).length
+  const compstat7Day = countWithinDays(7)
+  const compstat28Day = countWithinDays(28)
+  const compstat90Day = countWithinDays(90)
+  const previous28Day = countBetweenDays(28, 56)
+  const compstatDelta = previous28Day ? Math.round(((compstat28Day - previous28Day) / previous28Day) * 100) : compstat28Day ? 100 : 0
   const mappedIncidents = visibleIncidents.filter((incident) => Number.isFinite(incident.latitude) && Number.isFinite(incident.longitude))
   const repeatAreaCount = hotspotRows.filter(([, count]) => count > 1).length
+  const priorityZones = hotspotRows.slice(0, 3).map(([area, count], index) => ({
+    area,
+    count,
+    level: index === 0 || count >= highCount ? 'High' : index === 1 ? 'Medium' : 'Watch',
+    peak: peakBucket,
+  }))
+  const patrolWindows = timeBuckets
+    .filter((bucket) => bucket.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+  const moPatterns = Object.entries(
+    visibleIncidents.reduce((counts, incident) => {
+      const key = `${incident.type} · ${incident.address || incident.area} · ${incident.timeBucket}`
+      counts[key] = (counts[key] || 0) + 1
+      return counts
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
   const eastCoastIncidents = cityKey === 'newYork' ? visibleIncidents : incidents.filter((incident) => incident.sourceCity === CITY_SOURCES.newYork.label)
   const eastCoastBoroughRows = Object.entries(
     eastCoastIncidents.reduce((counts, incident) => {
@@ -865,6 +902,8 @@ function App() {
         </a>
         <nav className="nav-links" aria-label="Primary navigation">
           <a href="#map">Map</a>
+          <a href="#compstat">CompStat</a>
+          <a href="#patrol">Patrol</a>
           <a href="#east-coast">East Coast</a>
           <a href="#feed">Feed</a>
           <a href="#score">Safety score</a>
@@ -1171,6 +1210,119 @@ function App() {
               <p>{item.text}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section id="compstat" className="powerbi-section compstat-section" aria-label="CompStat analysis view">
+        <div className="powerbi-header">
+          <div>
+            <span className="section-kicker"><TrendingUp size={17} /> CompStat view</span>
+            <h2>Operational trend review</h2>
+            <p>Designed for weekly command review: recent volume, 28-day comparison, priority offenses, and repeat-location pressure.</p>
+          </div>
+          <div className="compstat-status">
+            <strong>{compstatDelta >= 0 ? `+${compstatDelta}%` : `${compstatDelta}%`}</strong>
+            <span>28-day change</span>
+          </div>
+        </div>
+        <div className="powerbi-grid">
+          <article className="kpi-tile">
+            <span>7-day volume</span>
+            <strong>{compstat7Day}</strong>
+            <small>recent records in current filters</small>
+          </article>
+          <article className="kpi-tile">
+            <span>28-day volume</span>
+            <strong>{compstat28Day}</strong>
+            <small>current CompStat window</small>
+          </article>
+          <article className="kpi-tile">
+            <span>90-day volume</span>
+            <strong>{compstat90Day}</strong>
+            <small>longer tactical context</small>
+          </article>
+          <article className="kpi-tile">
+            <span>Repeat areas</span>
+            <strong>{repeatAreaCount}</strong>
+            <small>locations with repeated reports</small>
+          </article>
+          <article className="chart-card wide">
+            <div className="panel-heading">
+              <span><TrendingUp size={17} /> Offense pressure</span>
+              <small>Top types</small>
+            </div>
+            <div className="horizontal-bars">
+              {topIncidentTypes.map(([type, count]) => (
+                <button key={type} type="button" onClick={() => setReportQuery(type)}>
+                  <span>{type}</span>
+                  <i style={{ width: `${Math.max(8, (count / maxTypeCount) * 100)}%` }} />
+                  <strong>{count}</strong>
+                </button>
+              ))}
+            </div>
+          </article>
+          <article className="chart-card">
+            <div className="compstat-verdict">
+              <strong>{compstatDelta > 10 ? 'Rising' : compstatDelta < -10 ? 'Declining' : 'Stable'}</strong>
+              <p>{compstatDelta > 10 ? 'Current 28-day volume is above the prior comparison window.' : compstatDelta < -10 ? 'Current 28-day volume is below the prior comparison window.' : 'Current 28-day volume is close to the prior comparison window.'}</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="patrol" className="powerbi-section patrol-section" aria-label="Patrol planning view">
+        <div className="powerbi-header">
+          <div>
+            <span className="section-kicker"><Route size={17} /> Patrol planning</span>
+            <h2>Priority zones and recommended watch windows</h2>
+            <p>This view converts analysis into operational planning signals without predicting individual behavior.</p>
+          </div>
+        </div>
+        <div className="patrol-grid">
+          <article className="patrol-card">
+            <div className="panel-heading">
+              <span><MapPin size={17} /> Priority zones</span>
+              <small>Top repeat locations</small>
+            </div>
+            <div className="priority-zone-list">
+              {priorityZones.map((zone) => (
+                <button key={zone.area} type="button" onClick={() => setReportQuery(zone.area)}>
+                  <strong>{zone.level}</strong>
+                  <span>{zone.area}</span>
+                  <small>{zone.count} reports · peak {zone.peak}</small>
+                </button>
+              ))}
+            </div>
+          </article>
+          <article className="patrol-card">
+            <div className="panel-heading">
+              <span><Clock3 size={17} /> Watch windows</span>
+              <small>Time deployment</small>
+            </div>
+            <div className="watch-window-list">
+              {patrolWindows.map((window) => (
+                <span key={window.label}>
+                  <strong>{window.label}</strong>
+                  <i style={{ width: `${Math.max(8, (window.count / maxBucketCount) * 100)}%` }} />
+                  <small>{window.count} reports</small>
+                </span>
+              ))}
+            </div>
+          </article>
+          <article className="patrol-card wide">
+            <div className="panel-heading">
+              <span><Siren size={17} /> MO pattern candidates</span>
+              <small>Type · place · time</small>
+            </div>
+            <div className="mo-list">
+              {moPatterns.map(([pattern, count]) => (
+                <button key={pattern} type="button" onClick={() => setReportQuery(pattern.split(' · ')[0])}>
+                  <span>{pattern}</span>
+                  <strong>{count}</strong>
+                </button>
+              ))}
+            </div>
+          </article>
         </div>
       </section>
 

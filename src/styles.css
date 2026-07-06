@@ -1629,6 +1629,28 @@ p {
   font-weight: 900;
 }
 
+.compstat-status {
+  display: grid;
+  gap: 4px;
+  min-width: 150px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f5f8fa;
+}
+
+.compstat-status strong {
+  color: #153f57;
+  font-size: 28px;
+}
+
+.compstat-status span {
+  color: #657380;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .powerbi-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -1674,6 +1696,24 @@ p {
   align-content: start;
   gap: 12px;
   min-height: 220px;
+}
+
+.compstat-verdict {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+  min-height: 180px;
+}
+
+.compstat-verdict strong {
+  color: #153f57;
+  font-size: 34px;
+}
+
+.compstat-verdict p {
+  color: #657380;
+  font-weight: 750;
+  line-height: 1.5;
 }
 
 .chart-card.wide {
@@ -1738,6 +1778,84 @@ p {
   color: #657380;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+.patrol-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.patrol-card {
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 14px;
+  background: #f7fafb;
+}
+
+.patrol-card.wide {
+  grid-column: span 1;
+}
+
+.priority-zone-list,
+.watch-window-list,
+.mo-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.priority-zone-list button,
+.mo-list button,
+.watch-window-list span {
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  color: #33424f;
+  background: #ffffff;
+  text-align: left;
+}
+
+.priority-zone-list strong {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #ffffff;
+  background: #153f57;
+  font-size: 12px;
+}
+
+.priority-zone-list span,
+.mo-list span {
+  overflow: hidden;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.priority-zone-list small,
+.watch-window-list small {
+  color: #657380;
+  font-weight: 800;
+}
+
+.watch-window-list i {
+  display: block;
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #153f57, #1b8a74);
+}
+
+.mo-list button {
+  grid-template-columns: 1fr 42px;
+  align-items: center;
+}
+
+.mo-list strong {
+  color: #153f57;
+  text-align: right;
 }
 
 .terms-grid {
@@ -1911,6 +2029,10 @@ input:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .patrol-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .chart-card.wide {
     grid-column: span 2;
   }
@@ -1946,6 +2068,7 @@ input:focus-visible {
   .crime-map-metrics,
   .powerbi-header,
   .powerbi-grid,
+  .patrol-grid,
   .terms-header,
   .terms-grid,
   .conclusion-grid,
