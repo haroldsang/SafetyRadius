@@ -779,6 +779,53 @@ p {
   line-height: 1.35;
 }
 
+.incident-notes {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+}
+
+.note-compose {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 8px;
+}
+
+.note-compose input {
+  min-height: 40px;
+  border: 1px solid rgba(21, 32, 43, 0.12);
+  border-radius: 8px;
+  padding: 0 10px;
+  color: #33424f;
+  background: #f7fafb;
+}
+
+.note-compose button {
+  border: 1px solid #153f57;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #153f57;
+  font-weight: 850;
+}
+
+.incident-notes > span {
+  display: grid;
+  gap: 3px;
+  border-radius: 8px;
+  padding: 9px;
+  background: #fff8ec;
+}
+
+.incident-notes > span strong {
+  color: #8a5a1b;
+  font-size: 12px;
+}
+
+.incident-notes > span small {
+  color: #5f6f7a;
+  font-weight: 750;
+}
+
 .feed-heading {
   min-height: 42px;
 }
@@ -1502,6 +1549,7 @@ input:focus-visible {
   .incident-drawer dl,
   .drawer-actions,
   .incident-updates,
+  .note-compose,
   .reports-header,
   .reports-tools,
   .incident-list,

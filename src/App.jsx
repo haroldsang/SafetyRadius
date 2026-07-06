@@ -171,6 +171,7 @@ const DATE_WINDOWS = [
 
 const WATCH_PROFILES_KEY = 'saferadius_watch_profiles_v1'
 const REVIEWED_INCIDENTS_KEY = 'saferadius_reviewed_incidents_v1'
+const INCIDENT_NOTES_KEY = 'saferadius_incident_notes_v1'
 
 const severityClass = {
   high: 'severity-high',
@@ -425,6 +426,14 @@ function App() {
     }
   })
   const [copyMessage, setCopyMessage] = useState('')
+  const [incidentNotes, setIncidentNotes] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(INCIDENT_NOTES_KEY) || '{}')
+    } catch {
+      return {}
+    }
+  })
+  const [noteDraft, setNoteDraft] = useState('')
   const [incidents, setIncidents] = useState(addMapPositions(FALLBACK_INCIDENTS))
   const [dataState, setDataState] = useState({
     label: 'Loading public crime data',
@@ -596,6 +605,7 @@ function App() {
     { label: 'Mapped', text: `Location resolved to ${selectedIncident.area}.` },
     { label: 'Context', text: `${selectedSimilarCount} similar reports and ${selectedAreaCount} reports in this area match current filters.` },
   ] : []
+  const selectedNotes = selectedIncident ? incidentNotes[selectedIncident.id] || [] : []
 
   function exportReportsCsv() {
     const headers = ['case', 'type', 'severity', 'category', 'area', 'status', 'time', 'source']
@@ -655,6 +665,22 @@ function App() {
     const nextReviewed = { ...reviewedIncidents, [selectedIncident.id]: true }
     setReviewedIncidents(nextReviewed)
     localStorage.setItem(REVIEWED_INCIDENTS_KEY, JSON.stringify(nextReviewed))
+  }
+
+  function saveIncidentNote() {
+    if (!selectedIncident || !noteDraft.trim()) return
+    const note = {
+      id: Date.now(),
+      text: noteDraft.trim(),
+      createdAt: new Date().toLocaleString(),
+    }
+    const nextNotes = {
+      ...incidentNotes,
+      [selectedIncident.id]: [note, ...(incidentNotes[selectedIncident.id] || [])].slice(0, 4),
+    }
+    setIncidentNotes(nextNotes)
+    setNoteDraft('')
+    localStorage.setItem(INCIDENT_NOTES_KEY, JSON.stringify(nextNotes))
   }
 
   async function copySelectedIncidentLink() {
@@ -933,6 +959,22 @@ function App() {
                   <span key={update.label}>
                     <strong>{update.label}</strong>
                     <small>{update.text}</small>
+                  </span>
+                ))}
+              </div>
+              <div className="incident-notes">
+                <div className="note-compose">
+                  <input
+                    value={noteDraft}
+                    onChange={(event) => setNoteDraft(event.target.value)}
+                    placeholder="Add a private observation note"
+                  />
+                  <button type="button" onClick={saveIncidentNote}>Save note</button>
+                </div>
+                {selectedNotes.map((note) => (
+                  <span key={note.id}>
+                    <strong>{note.createdAt}</strong>
+                    <small>{note.text}</small>
                   </span>
                 ))}
               </div>
