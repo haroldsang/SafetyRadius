@@ -220,6 +220,7 @@ function normalizeChicagoIncident(record) {
     time: formatTimeAgo(record.date),
     hour: formatHour(record.date),
     timeBucket: getTimeBucket(record.date),
+    occurredAt: record.date,
     distance: 'Chicago',
     area: record.block || record.location_description || 'Chicago',
     address: record.location_description || 'Public right of way',
@@ -278,6 +279,8 @@ function App() {
   const [severity, setSeverity] = useState('all')
   const [radius, setRadius] = useState(2)
   const [showHeatmap, setShowHeatmap] = useState(true)
+  const [reportQuery, setReportQuery] = useState('')
+  const [reportSort, setReportSort] = useState('recent')
   const [incidents, setIncidents] = useState(addMapPositions(FALLBACK_INCIDENTS))
   const [dataState, setDataState] = useState({
     label: 'Loading Chicago open crime data',
@@ -370,6 +373,42 @@ function App() {
     .slice(0, 4)
   const dominantOffense = topIncidentTypes[0]?.[0] || 'No reports'
   const peakBucket = [...timeBuckets].sort((a, b) => b.count - a.count)[0]?.label || 'Unknown'
+  const maxTypeCount = Math.max(1, ...topIncidentTypes.map(([, count]) => count))
+  const dailyRows = Object.entries(
+    visibleIncidents.reduce((counts, incident) => {
+      const key = incident.occurredAt ? new Date(incident.occurredAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) : incident.time
+      counts[key] = (counts[key] || 0) + 1
+      return counts
+    }, {}),
+  )
+    .slice(0, 7)
+  const maxDailyCount = Math.max(1, ...dailyRows.map(([, count]) => count))
+  const mappedIncidents = visibleIncidents.filter((incident) => Number.isFinite(incident.latitude) && Number.isFinite(incident.longitude))
+  const repeatAreaCount = hotspotRows.filter(([, count]) => count > 1).length
+  const reportRows = visibleIncidents
+    .filter((incident) => {
+      const haystack = `${incident.type} ${incident.area} ${incident.status} ${incident.sourceId || ''}`.toLowerCase()
+      return haystack.includes(reportQuery.trim().toLowerCase())
+    })
+    .sort((a, b) => {
+      if (reportSort === 'severity') {
+        const order = { high: 0, medium: 1, low: 2 }
+        return order[a.severity] - order[b.severity]
+      }
+      if (reportSort === 'area') return a.area.localeCompare(b.area)
+      return 0
+    })
+  const densityCells = Array.from({ length: 16 }, (_, index) => {
+    const col = index % 4
+    const row = Math.floor(index / 4)
+    const count = mappedIncidents.filter((incident) => {
+      const cellX = Math.min(3, Math.floor((incident.x || 0) / 25))
+      const cellY = Math.min(3, Math.floor((incident.y || 0) / 25))
+      return cellX === col && cellY === row
+    }).length
+    return { index, count }
+  })
+  const maxDensity = Math.max(1, ...densityCells.map((cell) => cell.count))
 
   return (
     <main className="app-shell">
@@ -613,6 +652,22 @@ function App() {
 
         <article className="analysis-card">
           <div className="panel-heading">
+            <span><TrendingUp size={17} /> Offense ranking</span>
+            <small>Top 5</small>
+          </div>
+          <div className="ranking-bars">
+            {topIncidentTypes.map(([type, count]) => (
+              <button key={type} type="button" onClick={() => setReportQuery(type)}>
+                <span>{type}</span>
+                <i style={{ width: `${Math.max(8, (count / maxTypeCount) * 100)}%` }} />
+                <strong>{count}</strong>
+              </button>
+            ))}
+          </div>
+        </article>
+
+        <article className="analysis-card">
+          <div className="panel-heading">
             <span><Siren size={17} /> Response signal</span>
             <small>Public records</small>
           </div>
@@ -620,6 +675,22 @@ function App() {
             <span><strong>{arrestRate}%</strong><small>arrest noted</small></span>
             <span><strong>{highCount}</strong><small>high severity</small></span>
             <span><strong>{radius} mi</strong><small>watch radius</small></span>
+          </div>
+        </article>
+
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><CalendarClock size={17} /> Daily volume</span>
+            <small>Recent import</small>
+          </div>
+          <div className="daily-volume">
+            {dailyRows.map(([day, count]) => (
+              <button key={day} type="button" onClick={() => setReportQuery(day)}>
+                <i style={{ height: `${Math.max(10, (count / maxDailyCount) * 100)}%` }} />
+                <span>{day}</span>
+                <strong>{count}</strong>
+              </button>
+            ))}
           </div>
         </article>
 
@@ -651,6 +722,26 @@ function App() {
           </div>
         </article>
 
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><Route size={17} /> Density grid</span>
+            <small>Map cells</small>
+          </div>
+          <div className="density-grid" aria-label="Incident density grid">
+            {densityCells.map((cell) => (
+              <button
+                key={cell.index}
+                style={{ '--density': cell.count / maxDensity }}
+                type="button"
+                onClick={() => setSeverity('all')}
+                aria-label={`${cell.count} reports in grid cell ${cell.index + 1}`}
+              >
+                <span>{cell.count}</span>
+              </button>
+            ))}
+          </div>
+        </article>
+
         <article className="analysis-card summary-panel">
           <div className="panel-heading">
             <span><Sparkles size={17} /> Pattern summary</span>
@@ -660,6 +751,18 @@ function App() {
             <span><strong>{dominantOffense}</strong><small>dominant offense</small></span>
             <span><strong>{peakBucket}</strong><small>peak time band</small></span>
             <span><strong>{selectedIncident?.area || 'No selection'}</strong><small>selected report area</small></span>
+          </div>
+        </article>
+
+        <article className="analysis-card">
+          <div className="panel-heading">
+            <span><Bell size={17} /> Alert logic</span>
+            <small>Citizen-style</small>
+          </div>
+          <div className="alert-logic">
+            <span><strong>{highCount ? 'Major only' : 'All clear'}</strong><small>priority mode</small></span>
+            <span><strong>{repeatAreaCount}</strong><small>repeat areas</small></span>
+            <span><strong>{radius} mi</strong><small>notification radius</small></span>
           </div>
         </article>
 
@@ -680,13 +783,28 @@ function App() {
             <span className="section-kicker"><CalendarClock size={17} /> Incident reports</span>
             <h2>Filtered public reports</h2>
           </div>
+          <div className="reports-tools">
+            <div className="search-input">
+              <Search size={17} />
+              <input
+                value={reportQuery}
+                onChange={(event) => setReportQuery(event.target.value)}
+                placeholder="Search type, block, case, status"
+              />
+            </div>
+            <select value={reportSort} onChange={(event) => setReportSort(event.target.value)} aria-label="Sort reports">
+              <option value="recent">Recent import</option>
+              <option value="severity">Severity</option>
+              <option value="area">Area</option>
+            </select>
+          </div>
           <div className="source-note">
             <strong>{dataState.source}</strong>
             <span>{dataState.updatedAt ? `Latest update: ${dataState.updatedAt}` : 'Live public-data import'}</span>
           </div>
         </div>
         <div className="incident-list reports-list">
-          {visibleIncidents.map((incident) => (
+          {reportRows.map((incident) => (
             <button
               className={selectedIncident?.id === incident.id ? 'incident-item selected' : 'incident-item'}
               key={incident.id}
