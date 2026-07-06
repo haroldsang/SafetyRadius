@@ -167,6 +167,8 @@ const DATE_WINDOWS = [
   { key: '90', label: '90 days' },
 ]
 
+const WATCH_PROFILES_KEY = 'saferadius_watch_profiles_v1'
+
 const severityClass = {
   high: 'severity-high',
   medium: 'severity-medium',
@@ -405,6 +407,13 @@ function App() {
   const [showHeatmap, setShowHeatmap] = useState(true)
   const [reportQuery, setReportQuery] = useState('')
   const [reportSort, setReportSort] = useState('recent')
+  const [watchProfiles, setWatchProfiles] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(WATCH_PROFILES_KEY) || '[]')
+    } catch {
+      return []
+    }
+  })
   const [incidents, setIncidents] = useState(addMapPositions(FALLBACK_INCIDENTS))
   const [dataState, setDataState] = useState({
     label: 'Loading public crime data',
@@ -587,6 +596,33 @@ function App() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  }
+
+  function saveWatchProfile() {
+    const profile = {
+      id: Date.now(),
+      cityKey,
+      query,
+      radius,
+      category,
+      severity,
+      dateWindow,
+      quickView,
+      createdAt: new Date().toLocaleString(),
+    }
+    const nextProfiles = [profile, ...watchProfiles].slice(0, 5)
+    setWatchProfiles(nextProfiles)
+    localStorage.setItem(WATCH_PROFILES_KEY, JSON.stringify(nextProfiles))
+  }
+
+  function loadWatchProfile(profile) {
+    setCityKey(profile.cityKey)
+    setQuery(profile.query)
+    setRadius(profile.radius)
+    setCategory(profile.category)
+    setSeverity(profile.severity)
+    setDateWindow(profile.dateWindow)
+    setQuickView(profile.quickView)
   }
 
   return (
@@ -1045,9 +1081,19 @@ function App() {
           <h2>Watch this area</h2>
           <p>Subscribe to verified reports within {radius} miles of {query || 'your selected location'}.</p>
           <div className="alert-actions">
-            <button type="button"><Home size={17} /> Save address</button>
+            <button type="button" onClick={saveWatchProfile}><Home size={17} /> Save watch</button>
             <a href={mapSearchUrl} target="_blank" rel="noreferrer"><ExternalLink size={17} /> Google address</a>
           </div>
+          {!!watchProfiles.length && (
+            <div className="watch-profiles">
+              {watchProfiles.map((profile) => (
+                <button key={profile.id} type="button" onClick={() => loadWatchProfile(profile)}>
+                  <strong>{CITY_SOURCES[profile.cityKey]?.label || profile.query}</strong>
+                  <small>{profile.radius} mi · {profile.category} · {profile.severity}</small>
+                </button>
+              ))}
+            </div>
+          )}
         </article>
       </section>
 

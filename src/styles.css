@@ -1289,6 +1289,36 @@ meter {
   background: #153f57;
 }
 
+.watch-profiles {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.watch-profiles button {
+  display: grid;
+  gap: 3px;
+  min-height: 48px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #33424f;
+  background: #f5f8fa;
+  text-align: left;
+}
+
+.watch-profiles strong,
+.watch-profiles small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.watch-profiles small {
+  color: #657380;
+  font-weight: 850;
+}
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
