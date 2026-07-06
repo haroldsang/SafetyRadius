@@ -728,6 +728,37 @@ p {
   font-weight: 850;
 }
 
+.source-audit {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.source-audit span {
+  display: grid;
+  gap: 4px;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f0faf7;
+}
+
+.source-audit strong,
+.source-audit small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-audit strong {
+  color: #153f57;
+}
+
+.source-audit small {
+  color: #657380;
+  font-weight: 850;
+}
+
 .drawer-actions {
   grid-column: 1 / -1;
   display: grid;
@@ -1070,6 +1101,15 @@ p {
 .signal-grid small {
   color: #657380;
   font-weight: 800;
+}
+
+.quality-footnotes {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  color: #657380;
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .daily-volume {
@@ -1547,6 +1587,7 @@ input:focus-visible {
 
   .incident-drawer,
   .incident-drawer dl,
+  .source-audit,
   .drawer-actions,
   .incident-updates,
   .note-compose,

@@ -239,6 +239,22 @@ function getTimeBucket(value) {
   return 'Overnight'
 }
 
+function withSourceMetadata(incident, cityKey, record, sourceFields) {
+  const populatedFields = sourceFields.filter((field) => {
+    const value = record[field]
+    return value !== undefined && value !== null && value !== '' && value !== '(null)'
+  }).length
+
+  return {
+    ...incident,
+    sourceCity: CITY_SOURCES[cityKey]?.label || cityKey,
+    sourceName: CITY_SOURCES[cityKey]?.source || 'Public data source',
+    sourceFields,
+    fieldCompleteness: Math.round((populatedFields / sourceFields.length) * 100),
+    rawUpdatedAt: incident.updatedOn || incident.occurredAt || 'Not provided',
+  }
+}
+
 function normalizeChicagoIncident(record) {
   const type = record.primary_type || 'Public safety report'
   const category = getIncidentCategory(type)
@@ -246,7 +262,7 @@ function normalizeChicagoIncident(record) {
   const latitude = Number(record.latitude)
   const longitude = Number(record.longitude)
 
-  return {
+  return withSourceMetadata({
     id: `chi-${record.id}`,
     type: type
       .toLowerCase()
@@ -266,7 +282,7 @@ function normalizeChicagoIncident(record) {
     longitude,
     sourceId: record.case_number,
     updatedOn: record.updated_on,
-  }
+  }, 'chicago', record, ['id', 'case_number', 'date', 'primary_type', 'description', 'location_description', 'latitude', 'longitude', 'updated_on'])
 }
 
 function normalizeLosAngelesIncident(record) {
@@ -274,7 +290,7 @@ function normalizeLosAngelesIncident(record) {
   const latitude = Number(record.lat)
   const longitude = Number(record.lon)
 
-  return {
+  return withSourceMetadata({
     id: `la-${record.dr_no}`,
     type: type
       .toLowerCase()
@@ -294,7 +310,7 @@ function normalizeLosAngelesIncident(record) {
     longitude,
     sourceId: record.dr_no,
     updatedOn: record.date_rptd,
-  }
+  }, 'losAngeles', record, ['dr_no', 'date_occ', 'crm_cd_desc', 'area_name', 'premis_desc', 'status_desc', 'lat', 'lon'])
 }
 
 function normalizeNewYorkIncident(record) {
@@ -302,7 +318,7 @@ function normalizeNewYorkIncident(record) {
   const latitude = Number(record.latitude)
   const longitude = Number(record.longitude)
 
-  return {
+  return withSourceMetadata({
     id: `nyc-${record.cmplnt_num}`,
     type: type
       .toLowerCase()
@@ -322,7 +338,7 @@ function normalizeNewYorkIncident(record) {
     longitude,
     sourceId: record.cmplnt_num,
     updatedOn: record.rpt_dt,
-  }
+  }, 'newYork', record, ['cmplnt_num', 'cmplnt_fr_dt', 'ofns_desc', 'law_cat_cd', 'boro_nm', 'prem_typ_desc', 'latitude', 'longitude'])
 }
 
 function normalizeSanFranciscoIncident(record) {
@@ -330,7 +346,7 @@ function normalizeSanFranciscoIncident(record) {
   const latitude = Number(record.latitude)
   const longitude = Number(record.longitude)
 
-  return {
+  return withSourceMetadata({
     id: `sf-${record.row_id || record.incident_id}`,
     type: type
       .toLowerCase()
@@ -350,7 +366,7 @@ function normalizeSanFranciscoIncident(record) {
     longitude,
     sourceId: record.incident_number || record.incident_id,
     updatedOn: record.data_as_of || record.report_datetime,
-  }
+  }, 'sanFrancisco', record, ['row_id', 'incident_datetime', 'incident_category', 'incident_description', 'resolution', 'intersection', 'analysis_neighborhood', 'latitude', 'longitude', 'data_as_of'])
 }
 
 function normalizeIncident(record, cityKey) {
@@ -526,6 +542,10 @@ function App() {
   const coordinateCoverage = visibleIncidents.length
     ? Math.round((visibleIncidents.filter((incident) => Number.isFinite(incident.latitude) && Number.isFinite(incident.longitude)).length / visibleIncidents.length) * 100)
     : 0
+  const averageFieldCompleteness = visibleIncidents.length
+    ? Math.round(visibleIncidents.reduce((sum, incident) => sum + (incident.fieldCompleteness || 0), 0) / visibleIncidents.length)
+    : 0
+  const sourceCityCount = new Set(visibleIncidents.map((incident) => incident.sourceCity)).size
   const hotspotRows = Object.entries(
     visibleIncidents.reduce((counts, incident) => {
       counts[incident.area] = (counts[incident.area] || 0) + 1
@@ -608,7 +628,7 @@ function App() {
   const selectedNotes = selectedIncident ? incidentNotes[selectedIncident.id] || [] : []
 
   function exportReportsCsv() {
-    const headers = ['case', 'type', 'severity', 'category', 'area', 'status', 'time', 'source']
+    const headers = ['case', 'type', 'severity', 'category', 'area', 'status', 'time', 'source', 'field_completeness', 'updated_on']
     const rows = reportRows.map((incident) => [
       incident.sourceId || incident.id,
       incident.type,
@@ -618,6 +638,8 @@ function App() {
       incident.status,
       incident.time,
       dataState.source,
+      incident.fieldCompleteness,
+      incident.rawUpdatedAt,
     ])
     const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${String(cell || '').replaceAll('"', '""')}"`).join(','))
@@ -947,6 +969,12 @@ function App() {
                 <div><dt>Similar</dt><dd>{selectedSimilarCount}</dd></div>
                 <div><dt>Area repeat</dt><dd>{selectedAreaCount}</dd></div>
               </dl>
+              <div className="source-audit">
+                <span><strong>{selectedIncident.sourceCity}</strong><small>source city</small></span>
+                <span><strong>{selectedIncident.fieldCompleteness}%</strong><small>field completeness</small></span>
+                <span><strong>{selectedIncident.rawUpdatedAt}</strong><small>source updated</small></span>
+                <span><strong>{selectedIncident.sourceFields?.length || 0}</strong><small>tracked fields</small></span>
+              </div>
               <div className="drawer-actions">
                 <a href={selectedMapsUrl} target="_blank" rel="noreferrer"><MapPin size={16} /> View location</a>
                 <a href={selectedDirectionsUrl} target="_blank" rel="noreferrer"><Navigation size={16} /> Directions</a>
@@ -1104,6 +1132,10 @@ function App() {
             <span><strong>{coordinateCoverage}%</strong><small>mapped</small></span>
             <span><strong>{hotspotRows.length}</strong><small>top areas</small></span>
             <span><strong>{visibleIncidents.length}</strong><small>records</small></span>
+          </div>
+          <div className="quality-footnotes">
+            <span>{averageFieldCompleteness}% average field completeness</span>
+            <span>{sourceCityCount} active source city</span>
           </div>
         </article>
 
