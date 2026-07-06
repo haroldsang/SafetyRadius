@@ -1193,6 +1193,54 @@ function App() {
     },
   ]
 
+  const officerActionItems = [
+    {
+      label: 'Patrol focus',
+      value: primaryHotspot?.[0] || 'Routine coverage',
+      text: primaryHotspot ? `Send visibility to ${primaryHotspot[0]} during ${peakBucket.toLowerCase()}.` : 'No repeated area requires reassignment.',
+      action: () => setReportQuery(primaryHotspot?.[0] || ''),
+      icon: <Route size={17} />,
+    },
+    {
+      label: 'Verify queue',
+      value: unreviewedHighCount ? `${unreviewedHighCount} high` : 'No high queue',
+      text: unreviewedHighCount ? 'Confirm high-priority records before public or patrol escalation.' : 'Keep standard source checks active.',
+      action: () => {
+        setQuickView('major')
+        setActivePage('data')
+      },
+      icon: <CheckCircle2 size={17} />,
+    },
+    {
+      label: 'Shift alert',
+      value: activeExceptionCount ? `${activeExceptionCount} flags` : 'Normal',
+      text: activeExceptionCount ? 'Notify supervisor that exception flags exist in the analysis workspace.' : 'No exception flag requires supervisory escalation.',
+      action: () => setActivePage('data'),
+      icon: <Bell size={17} />,
+    },
+    {
+      label: 'Area monitor',
+      value: peakBucket,
+      text: `Keep a watch posture during the ${peakBucket.toLowerCase()} activity window.`,
+      action: () => setReportQuery(peakBucket),
+      icon: <Clock3 size={17} />,
+    },
+    {
+      label: 'Brief note',
+      value: trendVerdict,
+      text: 'Copy the shift brief after confirming source readiness and priority area.',
+      action: copyAreaBrief,
+      icon: <Copy size={17} />,
+    },
+    {
+      label: 'Map handoff',
+      value: CITY_SOURCES[cityKey].label,
+      text: 'Open the selected area in Google Maps for route or field context.',
+      action: () => window.open(mapSearchUrl, '_blank', 'noreferrer'),
+      icon: <ExternalLink size={17} />,
+    },
+  ]
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -1269,23 +1317,13 @@ function App() {
             </button>
           ))}
         </div>
-        <div className="command-lens-grid" aria-label="Multidimensional command lenses">
-          {commandLenses.map((lens) => (
-            <button key={lens.label} type="button" onClick={() => setActivePage('data')}>
-              <span>{lens.icon}{lens.label}</span>
-              <strong>{lens.value}</strong>
-              <em>{lens.metric}</em>
-              <small>{lens.text}</small>
-            </button>
-          ))}
-        </div>
-        <div className="cross-pressure-strip" aria-label="Cross-dimensional operational pressure">
-          {crossPressureItems.map((item) => (
-            <article key={item.label}>
-              <span>{item.label}</span>
+        <div className="officer-action-grid" aria-label="Today officer action queue">
+          {officerActionItems.map((item) => (
+            <button key={item.label} type="button" onClick={item.action}>
+              <span>{item.icon}{item.label}</span>
               <strong>{item.value}</strong>
-              <p>{item.text}</p>
-            </article>
+              <small>{item.text}</small>
+            </button>
           ))}
         </div>
         <div className="workflow-strip">
@@ -1300,7 +1338,7 @@ function App() {
         </div>
         <div className="daily-command-footer">
           <button type="button" onClick={copyAreaBrief}><Copy size={16} /> Copy shift brief</button>
-          <button type="button" onClick={() => setActivePage('data')}><TrendingUp size={16} /> Review full analysis</button>
+          <button type="button" onClick={() => setActivePage('data')}><TrendingUp size={16} /> Send to analyst view</button>
           <a href={mapSearchUrl} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Open Google area</a>
         </div>
       </section>
@@ -1913,6 +1951,34 @@ function App() {
           <strong>{primaryHotspot?.[0] || 'No hotspot'}</strong>
           <p>{primaryHotspot ? `${primaryHotspot[1]} reports in the current filter.` : 'No repeated location pattern is visible.'}</p>
         </article>
+      </section>
+
+      <section className="analyst-lens-section" aria-label="Multidimensional crime analysis lenses">
+        <div className="analyst-lens-header">
+          <div>
+            <span className="section-kicker"><Filter size={17} /> Multidimensional analysis</span>
+            <h2>Current-area crime pattern by risk, place, time, offense, trend, and confidence</h2>
+          </div>
+        </div>
+        <div className="command-lens-grid analyst-lens-grid">
+          {commandLenses.map((lens) => (
+            <button key={lens.label} type="button" onClick={() => setReportQuery(lens.value)}>
+              <span>{lens.icon}{lens.label}</span>
+              <strong>{lens.value}</strong>
+              <em>{lens.metric}</em>
+              <small>{lens.text}</small>
+            </button>
+          ))}
+        </div>
+        <div className="cross-pressure-strip analyst-pressure-strip" aria-label="Cross-dimensional analysis pressure">
+          {crossPressureItems.map((item) => (
+            <article key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="public-data-section" aria-label="Public crime data source catalog">
