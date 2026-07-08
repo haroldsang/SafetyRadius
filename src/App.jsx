@@ -778,7 +778,7 @@ function App() {
     .slice(0, 3)
   const moPatterns = Object.entries(
     visibleIncidents.reduce((counts, incident) => {
-      const key = `${incident.type} · ${incident.address || incident.area} · ${incident.timeBucket}`
+      const key = `${incident.type} / ${incident.address || incident.area} / ${incident.timeBucket}`
       counts[key] = (counts[key] || 0) + 1
       return counts
     }, {}),
@@ -1142,17 +1142,17 @@ function App() {
   const crossPressureItems = [
     {
       label: 'Where x When',
-      value: primaryHotspot ? `${primaryHotspot[0]} · ${peakBucket}` : `No hotspot · ${peakBucket}`,
+      value: primaryHotspot ? `${primaryHotspot[0]} / ${peakBucket}` : `No hotspot / ${peakBucket}`,
       text: 'Best first deployment cue from current public reports.',
     },
     {
       label: 'What x Severity',
-      value: `${dominantOffense} · ${highCount} high`,
+      value: `${dominantOffense} / ${highCount} high`,
       text: 'Offense pattern plus urgency level for triage.',
     },
     {
       label: 'Data x Action',
-      value: `${rtccReadiness}% ready · ${activeExceptionCount} exceptions`,
+      value: `${rtccReadiness}% ready / ${activeExceptionCount} exceptions`,
       text: 'Source quality gate before command decisions.',
     },
   ]
@@ -1260,6 +1260,49 @@ function App() {
       label: 'End of shift',
       value: 'Handoff brief',
       text: `Copy brief with ${trendVerdict.toLowerCase()} trend and ${rtccReadiness}% readiness.`,
+    },
+  ]
+
+  const operationalRiskScore = Math.min(100, Math.round(
+    (highCount * 10)
+    + (activeExceptionCount * 12)
+    + (repeatAreaCount * 8)
+    + Math.max(0, trendDelta) * 0.45
+    + (100 - rtccReadiness) * 0.25,
+  ))
+  const operationalResponseLevel = operationalRiskScore >= 70
+    ? 'Level 3'
+    : operationalRiskScore >= 42
+      ? 'Level 2'
+      : 'Level 1'
+  const operationalRiskItems = [
+    {
+      label: 'Likelihood',
+      value: operationalRiskScore >= 70 ? 'High' : operationalRiskScore >= 42 ? 'Medium' : 'Low',
+      meter: operationalRiskScore,
+      text: `${repeatAreaCount} repeat areas, ${trendDelta >= 0 ? `+${trendDelta}%` : `${trendDelta}%`} trend pressure.`,
+    },
+    {
+      label: 'Impact',
+      value: highCount ? 'Priority' : 'Managed',
+      meter: Math.min(100, highCount * 22 + activeExceptionCount * 18 + 20),
+      text: highCount ? `${highCount} high-severity records can affect shift posture.` : 'No high-severity queue is driving impact.',
+    },
+    {
+      label: 'Confidence',
+      value: rtccReadiness >= 80 ? 'Strong' : rtccReadiness >= 65 ? 'Usable' : 'Review',
+      meter: rtccReadiness,
+      text: `${coordinateCoverage}% mapped, ${averageFieldCompleteness}% field completeness.`,
+    },
+    {
+      label: 'Response level',
+      value: operationalResponseLevel,
+      meter: operationalRiskScore,
+      text: operationalResponseLevel === 'Level 3'
+        ? 'Supervisor review and directed patrol are recommended.'
+        : operationalResponseLevel === 'Level 2'
+          ? 'Directed checks and analyst handoff are recommended.'
+          : 'Routine monitoring is appropriate with normal source checks.',
     },
   ]
 
@@ -1375,6 +1418,22 @@ function App() {
           ))}
         </div>
         <div className="module-title compact">
+          <span><AlertTriangle size={16} /> Operational risk matrix</span>
+          <h3>Likelihood, impact, confidence, and response level</h3>
+        </div>
+        <div className="operational-risk-matrix" aria-label="Operational risk matrix">
+          {operationalRiskItems.map((item) => (
+            <article key={item.label}>
+              <div>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+              <i style={{ '--meter': `${item.meter}%` }} />
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
+        <div className="module-title compact">
           <span><CalendarClock size={16} /> Shift timeline</span>
           <h3>What to check during the shift</h3>
         </div>
@@ -1463,7 +1522,7 @@ function App() {
         <article>
           <span><Layers size={17} /> RTCC readiness</span>
           <strong>{rtccReadiness}%</strong>
-          <p>{coordinateCoverage}% mapped · {averageFieldCompleteness}% field completeness.</p>
+          <p>{coordinateCoverage}% mapped / {averageFieldCompleteness}% field completeness.</p>
         </article>
         <article>
           <span><AlertTriangle size={17} /> Exceptions</span>
@@ -1551,7 +1610,7 @@ function App() {
         <div className="source-catalog-grid">
           {sourceCatalogRows.map((source) => (
             <article className={source.active ? 'active' : ''} key={source.key}>
-              <span>{source.region} · {source.timeline}</span>
+              <span>{source.region} / {source.timeline}</span>
               <strong>{source.label}</strong>
               <p>{source.source}</p>
               <div>
@@ -1601,7 +1660,7 @@ function App() {
                   <span>{segment.label}</span>
                   <i style={{ width: `${Math.max(5, (segment.count / maxTimelineSegmentCount) * 100)}%` }} />
                   <strong>{segment.count}</strong>
-                  <small>{segment.high} high · {segment.property} property · {segment.violent} violent</small>
+                  <small>{segment.high} high / {segment.property} property / {segment.violent} violent</small>
                 </button>
               ))}
             </div>
@@ -1617,7 +1676,7 @@ function App() {
                 <button key={row.area} type="button" onClick={() => setReportQuery(row.area)}>
                   <strong>{row.area}</strong>
                   <span>{row.topCategory}</span>
-                  <small>{row.count} total · {row.recentCount} in 28D · {row.high} high</small>
+                  <small>{row.count} total / {row.recentCount} in 28D / {row.high} high</small>
                 </button>
               ))}
             </div>
@@ -1641,7 +1700,7 @@ function App() {
               <div className="neighborhood-row" key={item.name}>
                 <span>
                   <strong>{item.name}</strong>
-                  <small>{item.incidents} incidents · {item.risk}</small>
+                  <small>{item.incidents} incidents / {item.risk}</small>
                 </span>
                 <meter min="0" max="100" value={item.score} />
                 <em className={item.trend.startsWith('+') ? 'positive' : 'negative'}>{item.trend}</em>
@@ -1827,7 +1886,7 @@ function App() {
                 <i className={severityClass[incident.severity]} />
                 <span>
                   <strong>{incident.type}</strong>
-                  <small>{incident.area} · {incident.time}</small>
+                  <small>{incident.area} / {incident.time}</small>
                 </span>
               </button>
             ))}
@@ -1883,7 +1942,7 @@ function App() {
               {watchProfiles.map((profile) => (
                 <button key={profile.id} type="button" onClick={() => loadWatchProfile(profile)}>
                   <strong>{CITY_SOURCES[profile.cityKey]?.label || profile.query}</strong>
-                  <small>{profile.radius} mi · {profile.category} · {profile.severity}</small>
+                  <small>{profile.radius} mi / {profile.category} / {profile.severity}</small>
                 </button>
               ))}
             </div>
@@ -1937,7 +1996,7 @@ function App() {
               </span>
               <span>
                 <strong>{incident.type}</strong>
-                <small>{incident.area} · {incident.distance} · {incident.status}</small>
+                <small>{incident.area} / {incident.distance} / {incident.status}</small>
               </span>
               <em>{incident.time}</em>
             </button>

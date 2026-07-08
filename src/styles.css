@@ -428,6 +428,59 @@ p {
   line-height: 1.38;
 }
 
+.operational-risk-matrix {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.operational-risk-matrix article {
+  display: grid;
+  gap: 9px;
+  min-height: 134px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 13px;
+  background: #ffffff;
+}
+
+.operational-risk-matrix div {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.operational-risk-matrix span {
+  color: #657380;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.operational-risk-matrix strong {
+  color: #153f57;
+  font-size: 19px;
+  line-height: 1.08;
+  text-align: right;
+}
+
+.operational-risk-matrix i {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1b8a74 var(--meter), #dce6ea var(--meter));
+}
+
+.operational-risk-matrix p {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.38;
+}
+
 .shift-timeline-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3497,6 +3550,7 @@ input:focus-visible {
   .today-priority-grid,
   .today-status-rail,
   .command-decision-strip,
+  .operational-risk-matrix,
   .shift-timeline-strip,
   .officer-action-grid,
   .command-lens-grid,
@@ -3587,6 +3641,7 @@ input:focus-visible {
   .today-priority-grid,
   .today-status-rail,
   .command-decision-strip,
+  .operational-risk-matrix,
   .shift-timeline-strip,
   .officer-action-grid,
   .command-lens-grid,
