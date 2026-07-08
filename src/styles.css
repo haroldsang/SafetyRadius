@@ -481,6 +481,43 @@ p {
   line-height: 1.38;
 }
 
+.accountability-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.accountability-grid article {
+  display: grid;
+  gap: 7px;
+  min-height: 126px;
+  border: 1px solid rgba(27, 138, 116, 0.18);
+  border-radius: 8px;
+  padding: 13px;
+  background: #f0faf7;
+}
+
+.accountability-grid span {
+  color: #557067;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.accountability-grid strong {
+  color: #153f57;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.accountability-grid p {
+  color: #5f6f7a;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.38;
+}
+
 .shift-timeline-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3551,6 +3588,7 @@ input:focus-visible {
   .today-status-rail,
   .command-decision-strip,
   .operational-risk-matrix,
+  .accountability-grid,
   .shift-timeline-strip,
   .officer-action-grid,
   .command-lens-grid,
@@ -3642,6 +3680,7 @@ input:focus-visible {
   .today-status-rail,
   .command-decision-strip,
   .operational-risk-matrix,
+  .accountability-grid,
   .shift-timeline-strip,
   .officer-action-grid,
   .command-lens-grid,

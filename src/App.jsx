@@ -1306,6 +1306,33 @@ function App() {
     },
   ]
 
+  const accountabilityItems = [
+    {
+      label: 'Use status',
+      value: rtccReadiness >= 80 ? 'Brief-ready' : rtccReadiness >= 65 ? 'Use with caution' : 'Analyst review',
+      text: rtccReadiness >= 80
+        ? 'Suitable for shift briefing after source review.'
+        : 'Treat findings as leads until source quality is reviewed.',
+    },
+    {
+      label: 'Human check',
+      value: reviewedCount ? 'Started' : 'Required',
+      text: reviewedCount
+        ? `${reviewedCount} records have local review marks.`
+        : 'No local review marks yet; do not escalate without human confirmation.',
+    },
+    {
+      label: 'Policy guardrail',
+      value: 'Place-based only',
+      text: 'This view supports area and resource planning, not individual prediction or enforcement decisions.',
+    },
+    {
+      label: 'Audit trail',
+      value: dataState.updatedAt || 'Live source',
+      text: `${CITY_SOURCES[cityKey].source}. Keep source record IDs for case-level follow-up.`,
+    },
+  ]
+
   const analystMethodCards = [
     { label: 'Hotspot / density', value: primaryHotspot?.[0] || 'No hotspot', text: 'Prioritize repeated places and density cells before broad area conclusions.' },
     { label: 'Cyclical report', value: peakBucket, text: 'Compare repeat time bands for shift planning and recurring watch windows.' },
@@ -1429,6 +1456,19 @@ function App() {
                 <strong>{item.value}</strong>
               </div>
               <i style={{ '--meter': `${item.meter}%` }} />
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
+        <div className="module-title compact">
+          <span><CheckCircle2 size={16} /> Accountability guardrails</span>
+          <h3>Use limits, human review, and audit posture</h3>
+        </div>
+        <div className="accountability-grid" aria-label="Accountability and policy guardrails">
+          {accountabilityItems.map((item) => (
+            <article key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
               <p>{item.text}</p>
             </article>
           ))}
