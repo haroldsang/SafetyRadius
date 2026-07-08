@@ -362,6 +362,44 @@ p {
   line-height: 1.4;
 }
 
+.today-status-rail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.today-status-rail article {
+  display: grid;
+  gap: 5px;
+  min-height: 92px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.today-status-rail span {
+  color: #657380;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.today-status-rail strong {
+  overflow: hidden;
+  color: #153f57;
+  font-size: 22px;
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.today-status-rail small {
+  color: #657380;
+  font-size: 12px;
+  font-weight: 750;
+}
+
 .officer-action-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -609,6 +647,38 @@ p {
   line-height: 1.42;
 }
 
+.module-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0 10px;
+}
+
+.module-title.compact {
+  margin-top: 14px;
+}
+
+.page-module-title {
+  margin-top: 0;
+}
+
+.module-title span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #657380;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.module-title h3 {
+  color: #132331;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
 .public-data-section,
 .classification-section {
   margin-bottom: 14px;
@@ -627,7 +697,12 @@ p {
   margin-bottom: 14px;
 }
 
-.public-data-header h2 {
+.classification-header {
+  margin-bottom: 14px;
+}
+
+.public-data-header h2,
+.classification-header h2 {
   margin-top: 6px;
   color: #132331;
   font-size: clamp(22px, 2.2vw, 30px);
@@ -3230,6 +3305,7 @@ input:focus-visible {
   .conclusion-grid,
   .visuals-grid,
   .today-priority-grid,
+  .today-status-rail,
   .officer-action-grid,
   .command-lens-grid,
   .workflow-strip,
@@ -3312,6 +3388,7 @@ input:focus-visible {
   .global-area-filter,
   .daily-command-header,
   .today-priority-grid,
+  .today-status-rail,
   .officer-action-grid,
   .command-lens-grid,
   .cross-pressure-strip,
@@ -3431,4 +3508,305 @@ input:focus-visible {
   .map-toolbar button {
     width: 100%;
   }
+}
+
+/* Dark command-center theme */
+:root {
+  color-scheme: dark;
+  color: #dbe7ef;
+  background: #08121a;
+}
+
+body {
+  background:
+    linear-gradient(rgba(134, 166, 188, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(134, 166, 188, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 18% 0%, rgba(43, 92, 116, 0.28), transparent 34%),
+    #08121a;
+}
+
+.topbar,
+.crime-map-heading,
+.data-page-heading,
+.daily-command-section,
+.analyst-lens-section,
+.public-data-section,
+.classification-section,
+.conclusions-section,
+.powerbi-section,
+.analyst-section,
+.supporting-section,
+.analysis-visuals-section,
+.terms-section,
+.control-panel,
+.map-stage,
+.trend-panel,
+.alert-panel,
+.reports-section,
+.data-analysis-summary article {
+  border-color: rgba(142, 173, 193, 0.16);
+  background: rgba(13, 28, 39, 0.92);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
+}
+
+.topbar {
+  background: rgba(9, 21, 30, 0.9);
+}
+
+.brand span,
+.icon-button,
+.panel-heading button,
+.workflow-strip strong {
+  color: #071018;
+  background: #8ee7cf;
+}
+
+.brand strong,
+.crime-map-heading h1,
+.data-page-heading h1,
+.daily-command-header h2,
+.public-data-header h2,
+.classification-header h2,
+.analyst-lens-header h2,
+.operations-header h2,
+.powerbi-header h2,
+.terms-header h2,
+.supporting-header h2,
+.visuals-header h2,
+.analyst-header h2,
+.module-title h3,
+.workflow-strip span,
+.term-card h3 {
+  color: #f3f8fb;
+}
+
+.crime-map-heading p,
+.data-page-heading p,
+.daily-command-header p,
+.public-data-header p,
+.powerbi-header p,
+.terms-header p,
+.analyst-header p,
+.visuals-header p,
+.data-analysis-summary p,
+.today-status-rail small,
+.today-priority-grid small,
+.officer-action-grid small,
+.command-lens-grid small,
+.cross-pressure-strip p,
+.workflow-strip p,
+.source-catalog-grid p,
+.timeline-classification small,
+.area-classification span,
+.area-classification small,
+.classification-card small,
+.chart-card p,
+.kpi-tile small,
+.incident-item small,
+.feed-heading small,
+.panel-heading small,
+.global-source-note,
+.module-title span,
+.section-kicker,
+.panel-heading span,
+.today-priority-grid span,
+.today-status-rail span,
+.officer-action-grid span,
+.command-lens-grid span,
+.cross-pressure-strip span,
+.data-analysis-summary span,
+.source-catalog-grid span,
+.rtcc-score span,
+.compstat-status span,
+.quality-footnotes,
+.source-note span {
+  color: #8fa4b2;
+}
+
+.crime-map-metrics span,
+.global-area-filter,
+.today-status-rail article,
+.today-priority-grid button,
+.officer-action-grid button,
+.workflow-strip article,
+.data-analysis-summary article,
+.source-catalog-grid article,
+.classification-card,
+.region-classification button,
+.timeline-classification button,
+.area-classification button,
+.command-lens-grid button,
+.cross-pressure-strip article,
+.kpi-tile,
+.chart-card,
+.patrol-card,
+.operations-card,
+.dimension-card,
+.term-card,
+.analysis-card,
+.search-card,
+.filter-group,
+.score-card,
+.insight-card,
+.mini-analytics,
+.compact-brief,
+.triage-card,
+.visual-card,
+.source-note,
+.incident-item,
+.alert-logic span,
+.incident-updates span,
+.source-audit span,
+.summary-stack span,
+.impact-metrics span,
+.signal-grid span,
+.watch-profiles button,
+.priority-zone-list button,
+.mo-list button,
+.watch-window-list span,
+.question-stack button {
+  border-color: rgba(142, 173, 193, 0.13);
+  background: #101f2a;
+}
+
+.today-priority-grid strong,
+.today-status-rail strong,
+.officer-action-grid strong,
+.command-lens-grid strong,
+.cross-pressure-strip strong,
+.data-analysis-summary strong,
+.crime-map-metrics strong,
+.source-catalog-grid strong,
+.timeline-classification strong,
+.area-classification strong,
+.kpi-tile strong,
+.compstat-verdict strong,
+.rtcc-score strong,
+.compstat-status strong,
+.signal-grid strong,
+.summary-stack strong,
+.impact-metrics strong,
+.source-audit strong,
+.governance-list small,
+.watch-profiles strong,
+.incident-item strong,
+.drawer-actions button,
+.drawer-actions a,
+.address-actions a,
+.alert-actions a {
+  color: #8ee7cf;
+}
+
+.global-area-filter select,
+.source-filters select,
+.reports-tools select,
+.search-input,
+.search-input input,
+.note-compose input,
+.city-select {
+  border-color: rgba(142, 173, 193, 0.18);
+  color: #e6f0f5;
+  background: #0b1822;
+}
+
+.global-area-filter .search-input,
+.global-area-filter select {
+  background: #0b1822;
+}
+
+.nav-links a,
+.page-tabs button {
+  color: #a7b8c3;
+}
+
+.nav-links a:hover,
+.page-tabs button:hover,
+.page-tabs button.active,
+.icon-button,
+.daily-command-footer button:nth-child(2),
+.daily-command-footer a,
+.source-catalog-grid a,
+.command-lens-grid em,
+.address-actions a,
+.drawer-actions a,
+.alert-actions a {
+  color: #8ee7cf;
+  background: rgba(142, 231, 207, 0.1);
+}
+
+.global-area-filter a,
+.daily-command-header button,
+.daily-command-footer button,
+.source-catalog-grid button,
+.powerbi-header button,
+.reports-tools button,
+.note-compose button,
+.conclusions-header button,
+.category-grid button.active,
+.severity-filter button.active,
+.date-filter button.active,
+.quick-views button.active,
+.region-classification button.active {
+  color: #071018;
+  border-color: #8ee7cf;
+  background: #8ee7cf;
+}
+
+.category-grid button,
+.alert-actions button,
+.map-toolbar button,
+.severity-filter button,
+.date-filter button,
+.quick-views button,
+.reports-tools button {
+  border-color: rgba(142, 173, 193, 0.16);
+  color: #dbe7ef;
+  background: #142633;
+}
+
+.conclusions-section {
+  background:
+    linear-gradient(135deg, rgba(14, 40, 55, 0.96), rgba(20, 55, 65, 0.92)),
+    #0d1c27;
+}
+
+.source-catalog-grid article.active,
+.cross-pressure-strip article,
+.insight-card,
+.compact-brief,
+.rtcc-score,
+.governance-list span.ok {
+  border-color: rgba(142, 231, 207, 0.2);
+  background: rgba(35, 83, 80, 0.22);
+}
+
+.governance-list span.watch,
+.incident-notes > span {
+  background: rgba(223, 141, 53, 0.16);
+}
+
+.trend-visual svg {
+  background:
+    linear-gradient(rgba(142, 173, 193, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(142, 173, 193, 0.1) 1px, transparent 1px),
+    #0b1822;
+}
+
+.trend-visual polyline,
+.horizontal-bars i,
+.watch-window-list i,
+.timeline-classification i,
+.weekday-chart i {
+  background: linear-gradient(90deg, #8ee7cf, #5bb9dc);
+}
+
+.trend-visual polyline {
+  stroke: #8ee7cf;
+}
+
+.map-canvas {
+  background:
+    linear-gradient(90deg, rgba(142, 173, 193, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(142, 173, 193, 0.08) 1px, transparent 1px),
+    #0b1822;
 }

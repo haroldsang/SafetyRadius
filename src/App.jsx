@@ -1241,6 +1241,13 @@ function App() {
     },
   ]
 
+  const todayStatusItems = [
+    { label: 'Shift status', value: activeExceptionCount ? 'Attention' : 'Normal', text: activeExceptionCount ? `${activeExceptionCount} exception flags` : 'No active exception flag' },
+    { label: 'Next move', value: primaryHotspot?.[0] || 'Monitor area', text: primaryHotspot ? `Go visible near ${primaryHotspot[0]}` : 'Keep normal area watch' },
+    { label: 'Watch window', value: peakBucket, text: `${timeBuckets.find((bucket) => bucket.label === peakBucket)?.count || 0} records` },
+    { label: 'Data status', value: `${rtccReadiness}% ready`, text: `${coordinateCoverage}% mapped` },
+  ]
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -1308,6 +1315,23 @@ function App() {
             <Layers size={16} /> Open analysis workspace
           </button>
         </div>
+        <div className="module-title">
+          <span><Bell size={16} /> Current shift status</span>
+          <h3>At-a-glance operational state</h3>
+        </div>
+        <div className="today-status-rail" aria-label="Current shift status">
+          {todayStatusItems.map((item) => (
+            <article key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.text}</small>
+            </article>
+          ))}
+        </div>
+        <div className="module-title">
+          <span><AlertTriangle size={16} /> Priority board</span>
+          <h3>Today’s most important items</h3>
+        </div>
         <div className="today-priority-grid">
           {todayPriorityItems.map((item) => (
             <button key={item.label} type="button" onClick={item.action}>
@@ -1317,6 +1341,10 @@ function App() {
             </button>
           ))}
         </div>
+        <div className="module-title compact">
+          <span><CheckCircle2 size={16} /> Action queue</span>
+          <h3>Actions for field and command staff</h3>
+        </div>
         <div className="officer-action-grid" aria-label="Today officer action queue">
           {officerActionItems.map((item) => (
             <button key={item.label} type="button" onClick={item.action}>
@@ -1325,6 +1353,10 @@ function App() {
               <small>{item.text}</small>
             </button>
           ))}
+        </div>
+        <div className="module-title compact">
+          <span><Route size={16} /> Shift workflow</span>
+          <h3>Recommended order of work</h3>
         </div>
         <div className="workflow-strip">
           {dailyWorkflowSteps.map((item) => (
@@ -1930,6 +1962,10 @@ function App() {
         </div>
       </section>
 
+      <div className="module-title page-module-title">
+        <span><Sparkles size={16} /> Analyst overview</span>
+        <h3>Current-area analytical summary</h3>
+      </div>
       <section className="data-analysis-summary" aria-label="Second page analysis summary">
         <article>
           <span><TrendingUp size={17} /> Trend</span>
@@ -2017,6 +2053,12 @@ function App() {
       </section>
 
       <section className="classification-section" aria-label="Region and timeline classification">
+        <div className="classification-header">
+          <div>
+            <span className="section-kicker"><CalendarClock size={17} /> Region and timeline classification</span>
+            <h2>Classify the current area by geography, time window, and local concentration</h2>
+          </div>
+        </div>
         <div className="classification-grid">
           <article className="classification-card">
             <div className="panel-heading">
