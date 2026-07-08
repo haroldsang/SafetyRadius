@@ -1212,6 +1212,28 @@ function App() {
     { label: 'Data status', value: `${rtccReadiness}% ready`, text: `${coordinateCoverage}% mapped` },
   ]
 
+  const commandDecisionItems = [
+    {
+      label: 'Command conclusion',
+      value: highCount || activeExceptionCount ? 'Escalate review' : 'Routine watch',
+      text: highCount || activeExceptionCount
+        ? 'Brief supervisor before routine patrol handoff.'
+        : 'Current signal supports normal patrol posture.',
+    },
+    {
+      label: 'Field action',
+      value: primaryHotspot ? 'Visible patrol' : 'Area scan',
+      text: primaryHotspot
+        ? `Start with visibility near ${primaryHotspot[0]} during ${peakBucket.toLowerCase()}.`
+        : `Keep a rolling scan during the ${peakBucket.toLowerCase()} window.`,
+    },
+    {
+      label: 'Analyst handoff',
+      value: trendVerdict,
+      text: `${selectedTrendWindow.label} trend, ${averageFieldCompleteness}% field quality, ${coordinateCoverage}% mapped.`,
+    },
+  ]
+
   const analystMethodCards = [
     { label: 'Hotspot / density', value: primaryHotspot?.[0] || 'No hotspot', text: 'Prioritize repeated places and density cells before broad area conclusions.' },
     { label: 'Cyclical report', value: peakBucket, text: 'Compare repeat time bands for shift planning and recurring watch windows.' },
@@ -1233,7 +1255,7 @@ function App() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <a className="brand" href="#overview" aria-label="SafeRadius home">
+        <a className="brand" href="#" aria-label="SafeRadius home">
           <span><ShieldCheck size={22} /></span>
           <strong>SafeRadius</strong>
         </a>
@@ -1310,9 +1332,22 @@ function App() {
             </article>
           ))}
         </div>
+        <div className="module-title compact">
+          <span><ShieldCheck size={16} /> Command decision</span>
+          <h3>Conclusion and immediate posture</h3>
+        </div>
+        <div className="command-decision-strip" aria-label="Today command decision summary">
+          {commandDecisionItems.map((item) => (
+            <article key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
         <div className="module-title">
           <span><AlertTriangle size={16} /> Priority board</span>
-          <h3>Today’s most important items</h3>
+          <h3>Today's most important items</h3>
         </div>
         <div className="today-priority-grid">
           {todayPriorityItems.map((item) => (

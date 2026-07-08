@@ -122,18 +122,8 @@ p {
   background: #e6eef2;
 }
 
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(280px, 0.62fr) minmax(520px, 1.8fr);
-  gap: 14px;
-  align-items: stretch;
-}
-
 .crime-map-heading,
 .data-page-heading,
-.conclusions-section,
-.control-panel,
-.map-stage,
 .trend-panel,
 .alert-panel,
 .reports-section {
@@ -398,6 +388,44 @@ p {
   color: #657380;
   font-size: 12px;
   font-weight: 750;
+}
+
+.command-decision-strip {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1.15fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.command-decision-strip article {
+  display: grid;
+  gap: 7px;
+  min-height: 118px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-left: 4px solid #153f57;
+  border-radius: 8px;
+  padding: 13px;
+  background: #ffffff;
+}
+
+.command-decision-strip span {
+  color: #657380;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.command-decision-strip strong {
+  color: #153f57;
+  font-size: clamp(20px, 1.7vw, 26px);
+  line-height: 1.08;
+}
+
+.command-decision-strip p {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.38;
 }
 
 .officer-action-grid {
@@ -3418,6 +3446,7 @@ input:focus-visible {
   .visuals-grid,
   .today-priority-grid,
   .today-status-rail,
+  .command-decision-strip,
   .officer-action-grid,
   .command-lens-grid,
   .analyst-method-grid,
@@ -3478,10 +3507,6 @@ input:focus-visible {
     grid-column: span 2;
   }
 
-  .workspace {
-    grid-template-columns: minmax(260px, 0.8fr) minmax(420px, 1.2fr);
-  }
-
   .reports-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3504,13 +3529,13 @@ input:focus-visible {
     overflow-x: auto;
   }
 
-  .workspace,
   .crime-map-heading,
   .crime-map-metrics,
   .global-area-filter,
   .daily-command-header,
   .today-priority-grid,
   .today-status-rail,
+  .command-decision-strip,
   .officer-action-grid,
   .command-lens-grid,
   .analyst-method-grid,
