@@ -2160,8 +2160,8 @@ function App() {
 
       <section className="supporting-section" aria-label="Supporting diagnostics">
         <div className="supporting-header">
-          <span className="section-kicker"><Layers size={17} /> Supporting diagnostics</span>
-          <h2>Only keep the modules that help explain the operational view</h2>
+          <span className="section-kicker"><Layers size={17} /> Records workflow diagnostics</span>
+          <h2>Record-level workflow tools that do not repeat the analytical summary above</h2>
         </div>
         <div className="analytics-grid">
         <article className="analysis-card trend-panel">
