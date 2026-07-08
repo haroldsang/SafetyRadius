@@ -1234,6 +1234,35 @@ function App() {
     },
   ]
 
+  const shiftTimelineItems = [
+    {
+      label: 'Start of shift',
+      value: unreviewedHighCount ? 'Open high queue' : 'Confirm source feed',
+      text: unreviewedHighCount
+        ? `${unreviewedHighCount} high-priority records need review before routine calls.`
+        : `Verify ${CITY_SOURCES[cityKey].label} feed status and current area filter.`,
+    },
+    {
+      label: 'Active watch',
+      value: peakBucket,
+      text: primaryHotspot
+        ? `Use ${peakBucket.toLowerCase()} visibility near ${primaryHotspot[0]}.`
+        : `Keep standard area coverage during the ${peakBucket.toLowerCase()} signal.`,
+    },
+    {
+      label: 'Supervisor check',
+      value: activeExceptionCount ? 'Review flags' : 'No flag',
+      text: activeExceptionCount
+        ? `${activeExceptionCount} exception flags should be resolved before final brief.`
+        : 'No exception flag is blocking the current operational summary.',
+    },
+    {
+      label: 'End of shift',
+      value: 'Handoff brief',
+      text: `Copy brief with ${trendVerdict.toLowerCase()} trend and ${rtccReadiness}% readiness.`,
+    },
+  ]
+
   const analystMethodCards = [
     { label: 'Hotspot / density', value: primaryHotspot?.[0] || 'No hotspot', text: 'Prioritize repeated places and density cells before broad area conclusions.' },
     { label: 'Cyclical report', value: peakBucket, text: 'Compare repeat time bands for shift planning and recurring watch windows.' },
@@ -1338,6 +1367,19 @@ function App() {
         </div>
         <div className="command-decision-strip" aria-label="Today command decision summary">
           {commandDecisionItems.map((item) => (
+            <article key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
+        <div className="module-title compact">
+          <span><CalendarClock size={16} /> Shift timeline</span>
+          <h3>What to check during the shift</h3>
+        </div>
+        <div className="shift-timeline-strip" aria-label="Shift timeline checklist">
+          {shiftTimelineItems.map((item) => (
             <article key={item.label}>
               <span>{item.label}</span>
               <strong>{item.value}</strong>
