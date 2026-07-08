@@ -1248,6 +1248,15 @@ function App() {
     { label: 'Data status', value: `${rtccReadiness}% ready`, text: `${coordinateCoverage}% mapped` },
   ]
 
+  const analystMethodCards = [
+    { label: 'Hotspot / density', value: primaryHotspot?.[0] || 'No hotspot', text: 'Prioritize repeated places and density cells before broad area conclusions.' },
+    { label: 'Cyclical report', value: peakBucket, text: 'Compare repeat time bands for shift planning and recurring watch windows.' },
+    { label: 'Exception report', value: `${activeExceptionCount} active`, text: 'Flag changes, quality issues, and review backlogs before command briefings.' },
+    { label: 'Repeat location', value: `${repeatAreaCount} areas`, text: 'Separate persistent places from one-time events for problem-oriented follow-up.' },
+    { label: 'Spatial confidence', value: `${coordinateCoverage}% mapped`, text: 'Use geocoding coverage as a reliability gate for map-based conclusions.' },
+    { label: 'Source audit', value: `${averageFieldCompleteness}%`, text: 'Check field completeness before treating normalized categories as final findings.' },
+  ]
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -1954,6 +1963,9 @@ function App() {
 
       {activePage === 'data' && (
       <>
+      <button className="back-to-today" type="button" onClick={() => setActivePage('analysis')}>
+        <ShieldCheck size={16} /> Back to Today brief
+      </button>
       <section className="data-page-heading" aria-label="Data page summary">
         <div>
           <span className="section-kicker"><Layers size={17} /> Analysis & data workspace</span>
@@ -2012,6 +2024,24 @@ function App() {
               <span>{item.label}</span>
               <strong>{item.value}</strong>
               <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="analyst-method-section" aria-label="Open source crime analysis methods">
+        <div className="analyst-method-header">
+          <div>
+            <span className="section-kicker"><Sparkles size={17} /> Analysis method matrix</span>
+            <h2>Methods inspired by crime mapping, CrimeStat, CrimeAnalyst, and CompStat workflows</h2>
+          </div>
+        </div>
+        <div className="analyst-method-grid">
+          {analystMethodCards.map((method) => (
+            <article key={method.label}>
+              <span>{method.label}</span>
+              <strong>{method.value}</strong>
+              <p>{method.text}</p>
             </article>
           ))}
         </div>
@@ -2433,6 +2463,10 @@ function App() {
       )}
 
       {activePage === 'terms' && (
+      <>
+      <button className="back-to-today" type="button" onClick={() => setActivePage('analysis')}>
+        <ShieldCheck size={16} /> Back to Today brief
+      </button>
       <section id="terms" className="terms-section" aria-label="Crime terms glossary">
         <div className="terms-header">
           <div>
@@ -2450,6 +2484,7 @@ function App() {
           ))}
         </div>
       </section>
+      </>
       )}
     </main>
   )

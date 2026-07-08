@@ -647,6 +647,78 @@ p {
   line-height: 1.42;
 }
 
+.back-to-today {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-bottom: 14px;
+  border: 1px solid #153f57;
+  border-radius: 8px;
+  padding: 0 13px;
+  color: #ffffff;
+  background: #153f57;
+  font-weight: 900;
+}
+
+.analyst-method-section {
+  margin-bottom: 14px;
+  border: 1px solid rgba(21, 32, 43, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 50px rgba(31, 44, 58, 0.08);
+}
+
+.analyst-method-header {
+  margin-bottom: 12px;
+}
+
+.analyst-method-header h2 {
+  margin-top: 6px;
+  color: #132331;
+  font-size: clamp(22px, 2.2vw, 30px);
+}
+
+.analyst-method-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.analyst-method-grid article {
+  display: grid;
+  gap: 7px;
+  min-height: 146px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.analyst-method-grid span {
+  color: #657380;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.analyst-method-grid strong {
+  overflow: hidden;
+  color: #153f57;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analyst-method-grid p {
+  color: #657380;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
 .module-title {
   display: flex;
   align-items: end;
@@ -3308,6 +3380,7 @@ input:focus-visible {
   .today-status-rail,
   .officer-action-grid,
   .command-lens-grid,
+  .analyst-method-grid,
   .workflow-strip,
   .data-analysis-summary,
   .source-catalog-grid,
@@ -3325,6 +3398,10 @@ input:focus-visible {
   }
 
   .officer-action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .analyst-method-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
@@ -3391,6 +3468,7 @@ input:focus-visible {
   .today-status-rail,
   .officer-action-grid,
   .command-lens-grid,
+  .analyst-method-grid,
   .cross-pressure-strip,
   .workflow-strip,
   .data-analysis-summary,
@@ -3568,6 +3646,7 @@ body {
 .public-data-header h2,
 .classification-header h2,
 .analyst-lens-header h2,
+.analyst-method-header h2,
 .operations-header h2,
 .powerbi-header h2,
 .terms-header h2,
@@ -3589,6 +3668,7 @@ body {
 .analyst-header p,
 .visuals-header p,
 .data-analysis-summary p,
+.analyst-method-grid p,
 .today-status-rail small,
 .today-priority-grid small,
 .officer-action-grid small,
@@ -3615,6 +3695,7 @@ body {
 .command-lens-grid span,
 .cross-pressure-strip span,
 .data-analysis-summary span,
+.analyst-method-grid span,
 .source-catalog-grid span,
 .rtcc-score span,
 .compstat-status span,
@@ -3625,6 +3706,7 @@ body {
 
 .crime-map-metrics span,
 .global-area-filter,
+.analyst-method-section,
 .today-status-rail article,
 .today-priority-grid button,
 .officer-action-grid button,
@@ -3636,6 +3718,7 @@ body {
 .timeline-classification button,
 .area-classification button,
 .command-lens-grid button,
+.analyst-method-grid article,
 .cross-pressure-strip article,
 .kpi-tile,
 .chart-card,
@@ -3675,6 +3758,7 @@ body {
 .command-lens-grid strong,
 .cross-pressure-strip strong,
 .data-analysis-summary strong,
+.analyst-method-grid strong,
 .crime-map-metrics strong,
 .source-catalog-grid strong,
 .timeline-classification strong,
@@ -3735,6 +3819,7 @@ body {
 }
 
 .global-area-filter a,
+.back-to-today,
 .daily-command-header button,
 .daily-command-footer button,
 .source-catalog-grid button,
