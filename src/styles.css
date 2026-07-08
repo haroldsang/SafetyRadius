@@ -719,6 +719,45 @@ p {
   line-height: 1.35;
 }
 
+.analyst-checklist {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.analyst-checklist span {
+  display: grid;
+  gap: 4px;
+  min-height: 76px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 10px;
+  background: #f7fafb;
+}
+
+.analyst-checklist strong {
+  color: #153f57;
+  font-size: 13px;
+}
+
+.analyst-checklist em {
+  overflow: hidden;
+  color: #33424f;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analyst-checklist small {
+  color: #657380;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .module-title {
   display: flex;
   align-items: end;
@@ -3381,6 +3420,7 @@ input:focus-visible {
   .officer-action-grid,
   .command-lens-grid,
   .analyst-method-grid,
+  .analyst-checklist,
   .workflow-strip,
   .data-analysis-summary,
   .source-catalog-grid,
@@ -3402,6 +3442,10 @@ input:focus-visible {
   }
 
   .analyst-method-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .analyst-checklist {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
@@ -3469,6 +3513,7 @@ input:focus-visible {
   .officer-action-grid,
   .command-lens-grid,
   .analyst-method-grid,
+  .analyst-checklist,
   .cross-pressure-strip,
   .workflow-strip,
   .data-analysis-summary,
@@ -3669,6 +3714,7 @@ body {
 .visuals-header p,
 .data-analysis-summary p,
 .analyst-method-grid p,
+.analyst-checklist small,
 .today-status-rail small,
 .today-priority-grid small,
 .officer-action-grid small,
@@ -3696,6 +3742,7 @@ body {
 .cross-pressure-strip span,
 .data-analysis-summary span,
 .analyst-method-grid span,
+.analyst-checklist em,
 .source-catalog-grid span,
 .rtcc-score span,
 .compstat-status span,
@@ -3719,6 +3766,7 @@ body {
 .area-classification button,
 .command-lens-grid button,
 .analyst-method-grid article,
+.analyst-checklist span,
 .cross-pressure-strip article,
 .kpi-tile,
 .chart-card,
@@ -3759,6 +3807,7 @@ body {
 .cross-pressure-strip strong,
 .data-analysis-summary strong,
 .analyst-method-grid strong,
+.analyst-checklist strong,
 .crime-map-metrics strong,
 .source-catalog-grid strong,
 .timeline-classification strong,

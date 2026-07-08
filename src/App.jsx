@@ -1257,6 +1257,15 @@ function App() {
     { label: 'Source audit', value: `${averageFieldCompleteness}%`, text: 'Check field completeness before treating normalized categories as final findings.' },
   ]
 
+  const analystChecklist = [
+    { label: 'Area selected', value: CITY_SOURCES[cityKey].label, status: 'Ready' },
+    { label: 'Time window checked', value: selectedTrendWindow.label, status: trendVerdict },
+    { label: 'Hotspot reviewed', value: primaryHotspot?.[0] || 'None', status: primaryHotspot ? 'Ready' : 'Watch' },
+    { label: 'Source quality', value: `${averageFieldCompleteness}%`, status: averageFieldCompleteness >= 80 ? 'Ready' : 'Review' },
+    { label: 'Mapped records', value: `${coordinateCoverage}%`, status: coordinateCoverage >= 80 ? 'Ready' : 'Review' },
+    { label: 'Exception flags', value: `${activeExceptionCount}`, status: activeExceptionCount ? 'Review' : 'Clear' },
+  ]
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -2043,6 +2052,15 @@ function App() {
               <strong>{method.value}</strong>
               <p>{method.text}</p>
             </article>
+          ))}
+        </div>
+        <div className="analyst-checklist" aria-label="Analyst evidence checklist">
+          {analystChecklist.map((item) => (
+            <span key={item.label}>
+              <strong>{item.label}</strong>
+              <em>{item.value}</em>
+              <small>{item.status}</small>
+            </span>
           ))}
         </div>
       </section>
