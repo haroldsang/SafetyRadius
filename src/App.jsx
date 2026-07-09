@@ -752,39 +752,8 @@ function App() {
     return (Date.now() - occurredAt.getTime()) <= days * 24 * 60 * 60 * 1000
     }).length
   }
-  const countBetweenDays = (startDay, endDay) => visibleIncidents.filter((incident) => {
-    if (!incident.occurredAt) return false
-    const occurredAt = new Date(incident.occurredAt)
-    if (Number.isNaN(occurredAt.getTime())) return false
-    const ageDays = (Date.now() - occurredAt.getTime()) / (24 * 60 * 60 * 1000)
-    return ageDays > startDay && ageDays <= endDay
-  }).length
-  const compstat7Day = countWithinDays(7)
-  const compstat28Day = countWithinDays(28)
-  const compstat90Day = countWithinDays(90)
-  const previous28Day = countBetweenDays(28, 56)
-  const compstatDelta = previous28Day ? Math.round(((compstat28Day - previous28Day) / previous28Day) * 100) : compstat28Day ? 100 : 0
   const mappedIncidents = visibleIncidents.filter((incident) => Number.isFinite(incident.latitude) && Number.isFinite(incident.longitude))
   const repeatAreaCount = hotspotRows.filter(([, count]) => count > 1).length
-  const priorityZones = hotspotRows.slice(0, 3).map(([area, count], index) => ({
-    area,
-    count,
-    level: index === 0 || count >= highCount ? 'High' : index === 1 ? 'Medium' : 'Watch',
-    peak: peakBucket,
-  }))
-  const patrolWindows = timeBuckets
-    .filter((bucket) => bucket.count > 0)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3)
-  const moPatterns = Object.entries(
-    visibleIncidents.reduce((counts, incident) => {
-      const key = `${incident.type} / ${incident.address || incident.area} / ${incident.timeBucket}`
-      counts[key] = (counts[key] || 0) + 1
-      return counts
-    }, {}),
-  )
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
   const reportRows = visibleIncidents
     .filter((incident) => {
       const haystack = `${incident.type} ${incident.area} ${incident.status} ${incident.sourceId || ''}`.toLowerCase()
@@ -836,7 +805,6 @@ function App() {
   ] : []
   const selectedNotes = selectedIncident ? incidentNotes[selectedIncident.id] || [] : []
   const riskLevel = safetyScore >= 78 ? 'Lower' : safetyScore >= 62 ? 'Moderate' : 'Elevated'
-  const conclusionConfidence = Math.round((averageFieldCompleteness * 0.45) + (coordinateCoverage * 0.35) + (Math.min(visibleIncidents.length, 100) * 0.2))
   const primaryHotspot = hotspotRows[0]
   const rtccReadiness = Math.min(100, Math.round((coordinateCoverage * 0.38) + (averageFieldCompleteness * 0.32) + (Math.min(visibleIncidents.length, 80) * 0.18) + (reviewedCount ? 12 : 0)))
   const exceptionFlags = [
@@ -866,51 +834,6 @@ function App() {
     },
   ]
   const activeExceptionCount = exceptionFlags.filter((item) => item.level !== 'Normal').length
-  const deploymentMatrix = timeBuckets.map((bucket) => {
-    const topCategory = [...categoryCounts].sort((a, b) => (
-      visibleIncidents.filter((incident) => incident.timeBucket === bucket.label && incident.category === b.key).length
-      - visibleIncidents.filter((incident) => incident.timeBucket === bucket.label && incident.category === a.key).length
-    ))[0]
-    return {
-      label: bucket.label,
-      count: bucket.count,
-      action: bucket.count === 0 ? 'Monitor' : bucket.count >= maxBucketCount ? 'Assign visible patrol' : 'Directed check',
-      focus: topCategory?.label || 'General',
-    }
-  })
-  const governanceChecks = [
-    { label: 'Human review', value: reviewedCount ? 'Started' : 'Needed', status: reviewedCount ? 'ok' : 'watch' },
-    { label: 'Location confidence', value: `${coordinateCoverage}%`, status: coordinateCoverage >= 80 ? 'ok' : 'watch' },
-    { label: 'Source completeness', value: `${averageFieldCompleteness}%`, status: averageFieldCompleteness >= 80 ? 'ok' : 'watch' },
-    { label: 'No individual prediction', value: 'Policy guardrail', status: 'ok' },
-  ]
-  const conclusionItems = [
-    {
-      title: 'Primary pattern',
-      value: dominantOffense,
-      text: `${dominantOffense} is the leading report type in the current filter, with ${topIncidentTypes[0]?.[1] || 0} matching public records.`,
-    },
-    {
-      title: 'Time concentration',
-      value: peakBucket,
-      text: `${peakBucket} has the highest report volume among the selected incidents. Use this band for patrol, commute, or watch-window planning.`,
-    },
-    {
-      title: 'Location concentration',
-      value: primaryHotspot?.[0] || 'No hotspot',
-      text: primaryHotspot ? `${primaryHotspot[0]} appears most often in the filtered records (${primaryHotspot[1]} reports).` : 'No repeated location pattern is visible in the current selection.',
-    },
-    {
-      title: 'Recommended action',
-      value: riskLevel,
-      text: riskLevel === 'Elevated'
-        ? 'Treat this area as a priority review zone and focus on high-severity reports first.'
-        : riskLevel === 'Moderate'
-          ? 'Maintain awareness and monitor repeat areas before changing routes or alert thresholds.'
-          : 'Current filtered data does not show a strong concentration, but source updates should still be monitored.',
-    },
-  ]
-
   function exportReportsCsv() {
     const headers = ['case', 'type', 'severity', 'category', 'area', 'status', 'time', 'source', 'field_completeness', 'updated_on']
     const rows = reportRows.map((incident) => [
@@ -1333,6 +1256,33 @@ function App() {
     },
   ]
 
+  const resourceAllocationItems = [
+    {
+      label: 'Patrol',
+      value: operationalResponseLevel === 'Level 3' ? 'Directed visibility' : operationalResponseLevel === 'Level 2' ? 'Directed checks' : 'Routine patrol',
+      load: operationalRiskScore,
+      text: primaryHotspot ? `${primaryHotspot[0]} / ${peakBucket}` : `${CITY_SOURCES[cityKey].label} / ${peakBucket}`,
+    },
+    {
+      label: 'Analyst',
+      value: activeExceptionCount ? 'Exception review' : 'Pattern watch',
+      load: Math.min(100, activeExceptionCount * 28 + Math.abs(trendDelta) + repeatAreaCount * 14),
+      text: `${trendVerdict} trend / ${repeatAreaCount} repeat areas`,
+    },
+    {
+      label: 'Supervisor',
+      value: highCount || activeExceptionCount ? 'Brief required' : 'No escalation',
+      load: Math.min(100, highCount * 24 + activeExceptionCount * 26),
+      text: highCount ? `${highCount} high-severity records` : 'No high-severity queue',
+    },
+    {
+      label: 'Data QA',
+      value: rtccReadiness >= 80 ? 'Standard audit' : 'Quality review',
+      load: Math.max(10, 100 - rtccReadiness),
+      text: `${coordinateCoverage}% mapped / ${averageFieldCompleteness}% complete`,
+    },
+  ]
+
   const analystMethodCards = [
     { label: 'Hotspot / density', value: primaryHotspot?.[0] || 'No hotspot', text: 'Prioritize repeated places and density cells before broad area conclusions.' },
     { label: 'Cyclical report', value: peakBucket, text: 'Compare repeat time bands for shift planning and recurring watch windows.' },
@@ -1469,6 +1419,22 @@ function App() {
             <article key={item.label}>
               <span>{item.label}</span>
               <strong>{item.value}</strong>
+              <p>{item.text}</p>
+            </article>
+          ))}
+        </div>
+        <div className="module-title compact">
+          <span><Route size={16} /> Resource allocation</span>
+          <h3>Who should act and how much attention is needed</h3>
+        </div>
+        <div className="resource-allocation-board" aria-label="Resource allocation board">
+          {resourceAllocationItems.map((item) => (
+            <article key={item.label}>
+              <div>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+              <i style={{ '--load': `${item.load}%` }} />
               <p>{item.text}</p>
             </article>
           ))}
