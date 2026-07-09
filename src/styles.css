@@ -309,6 +309,186 @@ p {
   font-weight: 900;
 }
 
+.command-brief-mosaic {
+  display: grid;
+  grid-template-columns: minmax(360px, 1.25fr) minmax(280px, 0.85fr) minmax(300px, 0.9fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.command-brief-primary,
+.command-brief-map,
+.command-brief-side article {
+  border: 1px solid rgba(21, 32, 43, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  background: #ffffff;
+}
+
+.command-brief-primary {
+  display: grid;
+  align-content: space-between;
+  min-height: 236px;
+  color: #ffffff;
+  background:
+    linear-gradient(135deg, rgba(21, 63, 87, 0.96), rgba(19, 83, 79, 0.92)),
+    #153f57;
+}
+
+.command-brief-primary span,
+.command-brief-map span,
+.command-brief-side span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #657380;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.command-brief-primary span {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.command-brief-primary strong {
+  max-width: 760px;
+  font-size: clamp(34px, 5vw, 72px);
+  line-height: 0.95;
+}
+
+.command-brief-primary p {
+  max-width: 680px;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.command-brief-primary div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.command-brief-primary em {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.command-brief-map {
+  position: relative;
+  min-height: 236px;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(21, 32, 43, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(21, 32, 43, 0.06) 1px, transparent 1px),
+    #f7fafb;
+  background-size: 32px 32px;
+}
+
+.command-brief-map strong {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin-top: 42px;
+  color: #153f57;
+  font-size: clamp(22px, 2.4vw, 32px);
+  line-height: 1.05;
+}
+
+.command-brief-map p {
+  position: relative;
+  z-index: 1;
+  margin-top: 8px;
+  color: #657380;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.map-track,
+.map-node {
+  position: absolute;
+  display: block;
+}
+
+.map-track {
+  border-radius: 999px;
+  background: rgba(21, 63, 87, 0.18);
+}
+
+.map-track.horizontal {
+  left: -12%;
+  top: 58%;
+  width: 124%;
+  height: 12px;
+  transform: rotate(-9deg);
+}
+
+.map-track.vertical {
+  right: 24%;
+  top: -12%;
+  width: 12px;
+  height: 124%;
+  transform: rotate(18deg);
+}
+
+.map-node {
+  width: 14px;
+  height: 14px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: #1b8a74;
+  box-shadow: 0 10px 24px rgba(21, 63, 87, 0.22);
+}
+
+.node-a {
+  left: 20%;
+  top: 62%;
+}
+
+.node-b {
+  right: 27%;
+  top: 38%;
+  background: #df8d35;
+}
+
+.node-c {
+  right: 12%;
+  bottom: 18%;
+  background: #c8454c;
+}
+
+.command-brief-side {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+}
+
+.command-brief-side article {
+  display: grid;
+  gap: 8px;
+}
+
+.command-brief-side strong {
+  color: #153f57;
+  font-size: 22px;
+  line-height: 1.08;
+}
+
+.command-brief-side p {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.38;
+}
+
 .today-priority-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -387,44 +567,6 @@ p {
   color: #657380;
   font-size: 12px;
   font-weight: 750;
-}
-
-.command-decision-strip {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1.15fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.command-decision-strip article {
-  display: grid;
-  gap: 7px;
-  min-height: 118px;
-  border: 1px solid rgba(21, 32, 43, 0.09);
-  border-left: 4px solid #153f57;
-  border-radius: 8px;
-  padding: 13px;
-  background: #ffffff;
-}
-
-.command-decision-strip span {
-  color: #657380;
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.command-decision-strip strong {
-  color: #153f57;
-  font-size: clamp(20px, 1.7vw, 26px);
-  line-height: 1.08;
-}
-
-.command-decision-strip p {
-  color: #657380;
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1.38;
 }
 
 .operational-risk-matrix {
@@ -2096,9 +2238,9 @@ input:focus-visible {
 
 @media (max-width: 1180px) {
   .crime-map-heading,
+  .command-brief-mosaic,
   .today-priority-grid,
   .today-status-rail,
-  .command-decision-strip,
   .operational-risk-matrix,
   .accountability-grid,
   .resource-allocation-board,
@@ -2161,9 +2303,9 @@ input:focus-visible {
   .crime-map-metrics,
   .global-area-filter,
   .daily-command-header,
+  .command-brief-mosaic,
   .today-priority-grid,
   .today-status-rail,
-  .command-decision-strip,
   .operational-risk-matrix,
   .accountability-grid,
   .resource-allocation-board,
@@ -2186,9 +2328,15 @@ input:focus-visible {
   }
 
   .daily-command-header,
+  .command-brief-side,
   .global-source-note {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .command-brief-primary,
+  .command-brief-map {
+    min-height: 220px;
   }
 
   .timeline-classification button {
@@ -2335,6 +2483,8 @@ body {
 .crime-map-metrics span,
 .global-area-filter,
 .analyst-method-section,
+.command-brief-map,
+.command-brief-side article,
 .today-status-rail article,
 .today-priority-grid button,
 .officer-action-grid button,
@@ -2387,9 +2537,34 @@ body {
 .summary-stack strong,
 .impact-metrics strong,
 .watch-profiles strong,
+.command-brief-map strong,
+.command-brief-side strong,
 .incident-item strong,
 .alert-actions a {
   color: #8ee7cf;
+}
+
+.command-brief-primary {
+  background:
+    linear-gradient(135deg, rgba(17, 56, 76, 0.98), rgba(20, 83, 80, 0.9)),
+    #0d1c27;
+}
+
+.command-brief-map {
+  background:
+    linear-gradient(rgba(142, 173, 193, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(142, 173, 193, 0.07) 1px, transparent 1px),
+    #101f2a;
+  background-size: 32px 32px;
+}
+
+.command-brief-map p,
+.command-brief-side p {
+  color: #8fa4b2;
+}
+
+.map-track {
+  background: rgba(142, 231, 207, 0.18);
 }
 
 .global-area-filter select,

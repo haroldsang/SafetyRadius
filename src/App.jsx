@@ -1368,6 +1368,40 @@ function App() {
             <Layers size={16} /> Open analysis workspace
           </button>
         </div>
+        <div className="command-brief-mosaic" aria-label="Command brief overview">
+          <article className="command-brief-primary">
+            <span><ShieldCheck size={16} /> Command posture</span>
+            <strong>{commandDecisionItems[0].value}</strong>
+            <p>{commandDecisionItems[0].text}</p>
+            <div>
+              <em>{operationalResponseLevel}</em>
+              <em>{riskLevel} risk</em>
+              <em>{activeExceptionCount} exceptions</em>
+            </div>
+          </article>
+          <article className="command-brief-map">
+            <span>Priority geography</span>
+            <strong>{primaryHotspot?.[0] || CITY_SOURCES[cityKey].label}</strong>
+            <p>{primaryHotspot ? `${primaryHotspot[1]} reports / ${peakBucket} watch window` : `${visibleIncidents.length} records / ${peakBucket} watch window`}</p>
+            <i className="map-track horizontal" />
+            <i className="map-track vertical" />
+            <i className="map-node node-a" />
+            <i className="map-node node-b" />
+            <i className="map-node node-c" />
+          </article>
+          <div className="command-brief-side">
+            <article>
+              <span>Field action</span>
+              <strong>{commandDecisionItems[1].value}</strong>
+              <p>{commandDecisionItems[1].text}</p>
+            </article>
+            <article>
+              <span>Analyst handoff</span>
+              <strong>{commandDecisionItems[2].value}</strong>
+              <p>{rtccReadiness}% readiness / {averageFieldCompleteness}% source quality</p>
+            </article>
+          </div>
+        </div>
         <div className="module-title">
           <span><Bell size={16} /> Current shift status</span>
           <h3>At-a-glance operational state</h3>
@@ -1378,19 +1412,6 @@ function App() {
               <span>{item.label}</span>
               <strong>{item.value}</strong>
               <small>{item.text}</small>
-            </article>
-          ))}
-        </div>
-        <div className="module-title compact">
-          <span><ShieldCheck size={16} /> Command decision</span>
-          <h3>Conclusion and immediate posture</h3>
-        </div>
-        <div className="command-decision-strip" aria-label="Today command decision summary">
-          {commandDecisionItems.map((item) => (
-            <article key={item.label}>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <p>{item.text}</p>
             </article>
           ))}
         </div>
