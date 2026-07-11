@@ -228,6 +228,87 @@ const CRIME_TERMS = [
   },
 ]
 
+const FEATURE_GUIDE = [
+  {
+    feature: 'Global Area Filter',
+    page: 'Today',
+    purpose: 'Sets the city or address context for the whole site.',
+    beginner: 'Start here. Choose one area first, then every other page follows that area.',
+  },
+  {
+    feature: 'Command Brief',
+    page: 'Today',
+    purpose: 'Summarizes today\'s posture, priority geography, field action, and analyst handoff.',
+    beginner: 'Read this first if you only have one minute.',
+  },
+  {
+    feature: 'Operational Risk Matrix',
+    page: 'Today',
+    purpose: 'Separates likelihood, impact, confidence, and response level.',
+    beginner: 'Use it to understand why the system recommends routine monitoring or escalation.',
+  },
+  {
+    feature: 'Accountability Guardrails',
+    page: 'Today',
+    purpose: 'Shows use limits, human review status, policy guardrails, and source audit posture.',
+    beginner: 'This explains what the dashboard should not be used for.',
+  },
+  {
+    feature: 'Resource Allocation',
+    page: 'Today',
+    purpose: 'Translates risk into patrol, analyst, supervisor, and data QA attention.',
+    beginner: 'Use it to see who should act next.',
+  },
+  {
+    feature: 'Shift Timeline',
+    page: 'Today',
+    purpose: 'Organizes start-of-shift, active watch, supervisor check, and handoff tasks.',
+    beginner: 'Follow this in order during a shift.',
+  },
+  {
+    feature: 'Priority Board',
+    page: 'Today',
+    purpose: 'Highlights the most urgent action cards for the current area.',
+    beginner: 'Click a card to jump toward the matching analysis view or map action.',
+  },
+  {
+    feature: 'Action Queue',
+    page: 'Today',
+    purpose: 'Lists field and command actions such as patrol focus, verify queue, and map handoff.',
+    beginner: 'Use this after reading the command brief.',
+  },
+  {
+    feature: 'Analyst Overview',
+    page: 'Analysis & Data',
+    purpose: 'Gives trend, readiness, exceptions, and priority area for analysis staff.',
+    beginner: 'Use this when you need more detail than the Today page.',
+  },
+  {
+    feature: 'Multidimensional Analysis',
+    page: 'Analysis & Data',
+    purpose: 'Breaks the current area into risk, place, time, offense, trend, and confidence lenses.',
+    beginner: 'Use one lens at a time; do not read every card as a separate alert.',
+  },
+  {
+    feature: 'Public Data Catalog',
+    page: 'Analysis & Data',
+    purpose: 'Shows official open crime data sources and lets you switch the source city.',
+    beginner: 'Use this to understand where the records come from.',
+  },
+  {
+    feature: 'Incident Reports',
+    page: 'Analysis & Data',
+    purpose: 'Shows the underlying normalized incident records with sorting, export, and map links.',
+    beginner: 'Use this only when you need the raw records behind a conclusion.',
+  },
+  {
+    feature: 'Crime Terms',
+    page: 'Terms',
+    purpose: 'Defines common public safety and analysis terms.',
+    beginner: 'Use this page whenever a label is unfamiliar.',
+  },
+]
+
 const WATCH_PROFILES_KEY = 'saferadius_watch_profiles_v1'
 const REVIEWED_INCIDENTS_KEY = 'saferadius_reviewed_incidents_v1'
 const INCIDENT_NOTES_KEY = 'saferadius_incident_notes_v1'
@@ -1128,13 +1209,6 @@ function App() {
     },
   ]
 
-  const todayStatusItems = [
-    { label: 'Shift status', value: activeExceptionCount ? 'Attention' : 'Normal', text: activeExceptionCount ? `${activeExceptionCount} exception flags` : 'No active exception flag' },
-    { label: 'Next move', value: primaryHotspot?.[0] || 'Monitor area', text: primaryHotspot ? `Go visible near ${primaryHotspot[0]}` : 'Keep normal area watch' },
-    { label: 'Watch window', value: peakBucket, text: `${timeBuckets.find((bucket) => bucket.label === peakBucket)?.count || 0} records` },
-    { label: 'Data status', value: `${rtccReadiness}% ready`, text: `${coordinateCoverage}% mapped` },
-  ]
-
   const commandDecisionItems = [
     {
       label: 'Command conclusion',
@@ -1401,19 +1475,6 @@ function App() {
               <p>{rtccReadiness}% readiness / {averageFieldCompleteness}% source quality</p>
             </article>
           </div>
-        </div>
-        <div className="module-title">
-          <span><Bell size={16} /> Current shift status</span>
-          <h3>At-a-glance operational state</h3>
-        </div>
-        <div className="today-status-rail" aria-label="Current shift status">
-          {todayStatusItems.map((item) => (
-            <article key={item.label}>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <small>{item.text}</small>
-            </article>
-          ))}
         </div>
         <div className="module-title compact">
           <span><AlertTriangle size={16} /> Operational risk matrix</span>
@@ -2041,10 +2102,24 @@ function App() {
       <section id="terms" className="terms-section" aria-label="Crime terms glossary">
         <div className="terms-header">
           <div>
-            <span className="section-kicker"><ShieldCheck size={17} /> Crime terms</span>
-            <h2>Glossary for beginners and professionals</h2>
+            <span className="section-kicker"><ShieldCheck size={17} /> Terms and feature guide</span>
+            <h2>What each feature means and when to use it</h2>
           </div>
-          <p>Terms are normalized for analysis. Always use the official source record for legal interpretation.</p>
+          <p>Start with the feature guide if you are new. Use the glossary for definitions and always check official source records for legal interpretation.</p>
+        </div>
+        <div className="feature-guide-grid" aria-label="Feature guide for SafeRadius modules">
+          {FEATURE_GUIDE.map((item) => (
+            <article className="feature-guide-card" key={item.feature}>
+              <span>{item.page}</span>
+              <h3>{item.feature}</h3>
+              <p>{item.purpose}</p>
+              <small>{item.beginner}</small>
+            </article>
+          ))}
+        </div>
+        <div className="terms-subheader">
+          <span className="section-kicker"><Sparkles size={17} /> Glossary</span>
+          <h3>Core public safety terms</h3>
         </div>
         <div className="terms-grid">
           {CRIME_TERMS.map((item) => (

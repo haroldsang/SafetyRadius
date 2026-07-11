@@ -531,44 +531,6 @@ p {
   line-height: 1.4;
 }
 
-.today-status-rail {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.today-status-rail article {
-  display: grid;
-  gap: 5px;
-  min-height: 92px;
-  border: 1px solid rgba(21, 32, 43, 0.09);
-  border-radius: 8px;
-  padding: 12px;
-  background: #ffffff;
-}
-
-.today-status-rail span {
-  color: #657380;
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.today-status-rail strong {
-  overflow: hidden;
-  color: #153f57;
-  font-size: 22px;
-  line-height: 1.08;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.today-status-rail small {
-  color: #657380;
-  font-size: 12px;
-  font-weight: 750;
-}
-
 .operational-risk-matrix {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2088,6 +2050,58 @@ p {
   line-height: 1.5;
 }
 
+.feature-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.feature-guide-card {
+  display: grid;
+  gap: 7px;
+  min-height: 150px;
+  border: 1px solid rgba(21, 32, 43, 0.09);
+  border-radius: 8px;
+  padding: 13px;
+  background: #f7fafb;
+}
+
+.feature-guide-card span {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #153f57;
+  background: #edf5f8;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.feature-guide-card h3 {
+  color: #153f57;
+  font-size: 17px;
+  line-height: 1.12;
+}
+
+.feature-guide-card p,
+.feature-guide-card small {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.38;
+}
+
+.terms-subheader {
+  margin: 4px 0 12px;
+}
+
+.terms-subheader h3 {
+  margin-top: 6px;
+  color: #132331;
+  font-size: 22px;
+}
+
 .terms-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2240,7 +2254,6 @@ input:focus-visible {
   .crime-map-heading,
   .command-brief-mosaic,
   .today-priority-grid,
-  .today-status-rail,
   .operational-risk-matrix,
   .accountability-grid,
   .resource-allocation-board,
@@ -2253,6 +2266,7 @@ input:focus-visible {
   .data-analysis-summary,
   .source-catalog-grid,
   .classification-grid,
+  .feature-guide-grid,
   .terms-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2305,7 +2319,6 @@ input:focus-visible {
   .daily-command-header,
   .command-brief-mosaic,
   .today-priority-grid,
-  .today-status-rail,
   .operational-risk-matrix,
   .accountability-grid,
   .resource-allocation-board,
@@ -2322,6 +2335,7 @@ input:focus-visible {
   .source-catalog-grid,
   .classification-grid,
   .terms-header,
+  .feature-guide-grid,
   .terms-grid,
   .analytics-grid {
     grid-template-columns: 1fr;
@@ -2428,6 +2442,8 @@ body {
 .supporting-header h2,
 .module-title h3,
 .workflow-strip span,
+.feature-guide-card h3,
+.terms-subheader h3,
 .term-card h3 {
   color: #f3f8fb;
 }
@@ -2444,7 +2460,8 @@ body {
 .accountability-grid p,
 .resource-allocation-board p,
 .shift-timeline-strip p,
-.today-status-rail small,
+.feature-guide-card p,
+.feature-guide-card small,
 .today-priority-grid small,
 .officer-action-grid small,
 .command-lens-grid small,
@@ -2463,7 +2480,6 @@ body {
 .section-kicker,
 .panel-heading span,
 .today-priority-grid span,
-.today-status-rail span,
 .officer-action-grid span,
 .command-lens-grid span,
 .cross-pressure-strip span,
@@ -2485,7 +2501,7 @@ body {
 .analyst-method-section,
 .command-brief-map,
 .command-brief-side article,
-.today-status-rail article,
+.feature-guide-card,
 .today-priority-grid button,
 .officer-action-grid button,
 .workflow-strip article,
@@ -2517,8 +2533,12 @@ body {
   background: #101f2a;
 }
 
+.feature-guide-card span {
+  color: #8ee7cf;
+  background: rgba(142, 231, 207, 0.1);
+}
+
 .today-priority-grid strong,
-.today-status-rail strong,
 .officer-action-grid strong,
 .command-lens-grid strong,
 .cross-pressure-strip strong,
