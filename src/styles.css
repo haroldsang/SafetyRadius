@@ -990,6 +990,56 @@ p {
   font-weight: 900;
 }
 
+.analyst-conclusion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.36fr);
+  gap: 14px;
+  align-items: stretch;
+  margin-bottom: 14px;
+  border: 1px solid rgba(21, 32, 43, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, rgba(21, 63, 87, 0.08), rgba(27, 138, 116, 0.08)),
+    rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 50px rgba(31, 44, 58, 0.08);
+}
+
+.analyst-conclusion h2 {
+  margin-top: 6px;
+  color: #132331;
+  font-size: clamp(22px, 2.4vw, 32px);
+}
+
+.analyst-conclusion p {
+  margin-top: 8px;
+  max-width: 980px;
+  color: #657380;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.analyst-conclusion aside {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  border-left: 1px solid rgba(21, 32, 43, 0.1);
+  padding-left: 14px;
+}
+
+.analyst-conclusion aside strong {
+  color: #153f57;
+  font-size: 20px;
+  line-height: 1.12;
+}
+
+.analyst-conclusion aside span {
+  color: #657380;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .analyst-method-section {
   margin-bottom: 14px;
   border: 1px solid rgba(21, 32, 43, 0.1);
@@ -2271,6 +2321,7 @@ input:focus-visible {
   .analyst-checklist,
   .workflow-strip,
   .data-analysis-summary,
+  .analyst-conclusion,
   .source-catalog-grid,
   .classification-grid,
   .feature-guide-grid,
@@ -2333,6 +2384,7 @@ input:focus-visible {
   .cross-pressure-strip,
   .workflow-strip,
   .data-analysis-summary,
+  .analyst-conclusion,
   .public-data-header,
   .source-filters,
   .source-catalog-grid,
@@ -2346,9 +2398,17 @@ input:focus-visible {
 
   .daily-command-header,
   .command-brief-side,
+  .analyst-conclusion aside,
   .global-source-note {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .analyst-conclusion aside {
+    border-left: 0;
+    border-top: 1px solid rgba(21, 32, 43, 0.1);
+    padding-left: 0;
+    padding-top: 12px;
   }
 
   .command-brief-primary,
@@ -2407,6 +2467,7 @@ body {
 .crime-map-heading,
 .data-page-heading,
 .daily-command-section,
+.analyst-conclusion,
 .analyst-lens-section,
 .public-data-section,
 .classification-section,
@@ -2437,6 +2498,8 @@ body {
 .crime-map-heading h1,
 .data-page-heading h1,
 .daily-command-header h2,
+.analyst-conclusion h2,
+.analyst-conclusion aside strong,
 .public-data-header h2,
 .classification-header h2,
 .analyst-lens-header h2,
@@ -2454,6 +2517,8 @@ body {
 .crime-map-heading p,
 .data-page-heading p,
 .daily-command-header p,
+.analyst-conclusion p,
+.analyst-conclusion aside span,
 .public-data-header p,
 .terms-header p,
 .data-analysis-summary p,
@@ -2535,6 +2600,10 @@ body {
 .watch-profiles button {
   border-color: rgba(142, 173, 193, 0.13);
   background: #101f2a;
+}
+
+.analyst-conclusion aside {
+  border-color: rgba(142, 173, 193, 0.16);
 }
 
 .feature-guide-card span {

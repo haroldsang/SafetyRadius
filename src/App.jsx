@@ -284,6 +284,12 @@ const FEATURE_GUIDE = [
     beginner: 'Use this when you need more detail than the Today page.',
   },
   {
+    feature: 'Analyst Conclusion',
+    page: 'Analysis & Data',
+    purpose: 'Turns the current data pattern into one plain-language analytical conclusion.',
+    beginner: 'Read this before reviewing charts; it tells you what the charts are likely saying.',
+  },
+  {
     feature: 'Multidimensional Analysis',
     page: 'Analysis & Data',
     purpose: 'Breaks the current area into risk, place, time, offense, trend, and confidence lenses.',
@@ -1360,6 +1366,34 @@ function App() {
     { label: 'Exception flags', value: `${activeExceptionCount}`, status: activeExceptionCount ? 'Review' : 'Clear' },
   ]
 
+  const commandRationale = [
+    {
+      label: 'Trigger',
+      value: highCount ? `${highCount} high` : activeExceptionCount ? `${activeExceptionCount} flags` : 'None',
+    },
+    {
+      label: 'Place cue',
+      value: primaryHotspot?.[0] || 'No repeat zone',
+    },
+    {
+      label: 'Source gate',
+      value: rtccReadiness >= 80 ? 'Brief-ready' : rtccReadiness >= 65 ? 'Use caution' : 'Analyst review',
+    },
+  ]
+
+  const analystConclusion = {
+    title: highCount || activeExceptionCount ? 'Escalation should stay evidence-gated' : 'Routine posture is supported',
+    summary: primaryHotspot
+      ? `${CITY_SOURCES[cityKey].label} shows its strongest operational cue around ${primaryHotspot[0]} during the ${peakBucket.toLowerCase()} window, with ${dominantOffense.toLowerCase()} driving the current offense pattern.`
+      : `${CITY_SOURCES[cityKey].label} does not show a dominant repeat zone in the current filter; use the ${peakBucket.toLowerCase()} window and ${dominantOffense.toLowerCase()} pattern for routine monitoring.`,
+    nextStep: activeExceptionCount
+      ? 'Resolve exception flags before turning this into a shift-level recommendation.'
+      : rtccReadiness < 80
+        ? 'Improve source confidence before escalation; use this as an analytical lead.'
+        : 'Use the conclusion as a briefing note, then verify record-level details below.',
+    confidence: `${rtccReadiness}% readiness / ${coordinateCoverage}% mapped`,
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -1433,9 +1467,9 @@ function App() {
             <strong>{commandDecisionItems[0].value}</strong>
             <p>{commandDecisionItems[0].text}</p>
             <div>
-              <em>{operationalResponseLevel}</em>
-              <em>{riskLevel} risk</em>
-              <em>{activeExceptionCount} exceptions</em>
+              {commandRationale.map((item) => (
+                <em key={item.label}>{item.label}: {item.value}</em>
+              ))}
             </div>
           </article>
           <article className="command-brief-map">
@@ -1580,6 +1614,18 @@ function App() {
           <h1>Deep analysis, source records, diagnostics, and incident reports</h1>
           <p>The command page stays focused on today's actions. This second page holds the full analytical workspace and underlying records.</p>
         </div>
+      </section>
+
+      <section className="analyst-conclusion" aria-label="Analyst conclusion">
+        <div>
+          <span className="section-kicker"><Sparkles size={17} /> Analyst conclusion</span>
+          <h2>{analystConclusion.title}</h2>
+          <p>{analystConclusion.summary}</p>
+        </div>
+        <aside>
+          <strong>{analystConclusion.confidence}</strong>
+          <span>{analystConclusion.nextStep}</span>
+        </aside>
       </section>
 
       <div className="module-title page-module-title">
