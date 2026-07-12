@@ -140,6 +140,7 @@ p {
 
 .side-toolbar button,
 .side-toolbar a {
+  position: relative;
   display: inline-grid;
   place-items: center;
   width: 34px;
@@ -148,6 +149,37 @@ p {
   border-radius: 8px;
   color: #52616d;
   background: transparent;
+}
+
+.side-toolbar button::after,
+.side-toolbar a::after {
+  content: attr(aria-label);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  width: max-content;
+  max-width: 180px;
+  transform: translateY(-50%) translateX(-4px);
+  pointer-events: none;
+  border: 1px solid rgba(21, 32, 43, 0.1);
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: #153f57;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 30px rgba(31, 44, 58, 0.12);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.side-toolbar button:hover::after,
+.side-toolbar button:focus-visible::after,
+.side-toolbar a:hover::after,
+.side-toolbar a:focus-visible::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
 }
 
 .side-toolbar button:hover,
@@ -2443,6 +2475,11 @@ input:focus-visible {
     flex: 0 0 38px;
   }
 
+  .side-toolbar button::after,
+  .side-toolbar a::after {
+    display: none;
+  }
+
   .side-toolbar span {
     width: 1px;
     height: 28px;
@@ -2585,6 +2622,13 @@ body {
 .side-toolbar button,
 .side-toolbar a {
   color: #8fa4b2;
+}
+
+.side-toolbar button::after,
+.side-toolbar a::after {
+  color: #dbe7ef;
+  border-color: rgba(142, 173, 193, 0.16);
+  background: rgba(13, 28, 39, 0.96);
 }
 
 .side-toolbar button:hover,

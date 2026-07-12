@@ -1418,7 +1418,7 @@ function App() {
           <button className={activePage === 'data' ? 'active' : ''} type="button" onClick={() => setActivePage('data')}>Analysis & Data</button>
           <button className={activePage === 'terms' ? 'active' : ''} type="button" onClick={() => setActivePage('terms')}>Terms</button>
         </nav>
-        <button className="icon-button" type="button" aria-label="Notification settings">
+        <button className="icon-button" type="button" onClick={saveWatchProfile} title="Save current watch" aria-label="Save current watch profile">
           <Bell size={19} />
         </button>
       </header>
