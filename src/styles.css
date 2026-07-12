@@ -50,7 +50,7 @@ p {
 .app-shell {
   width: min(1540px, 100%);
   margin: 0 auto;
-  padding: 18px;
+  padding: 18px 18px 18px 86px;
 }
 
 .topbar {
@@ -120,6 +120,48 @@ p {
   margin-left: auto;
   color: #153f57;
   background: #e6eef2;
+}
+
+.side-toolbar {
+  position: fixed;
+  left: max(14px, calc((100vw - 1540px) / 2 + 18px));
+  top: 96px;
+  z-index: 9;
+  display: grid;
+  gap: 8px;
+  width: 52px;
+  border: 1px solid rgba(21, 32, 43, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 50px rgba(31, 44, 58, 0.1);
+  backdrop-filter: blur(18px);
+}
+
+.side-toolbar button,
+.side-toolbar a {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 8px;
+  color: #52616d;
+  background: transparent;
+}
+
+.side-toolbar button:hover,
+.side-toolbar a:hover,
+.side-toolbar button.active {
+  color: #ffffff;
+  background: #153f57;
+}
+
+.side-toolbar span {
+  display: block;
+  height: 1px;
+  margin: 2px 5px;
+  background: rgba(21, 32, 43, 0.12);
 }
 
 .crime-map-heading,
@@ -2387,6 +2429,26 @@ input:focus-visible {
     padding: 10px;
   }
 
+  .side-toolbar {
+    position: sticky;
+    top: 92px;
+    display: flex;
+    width: 100%;
+    margin-bottom: 12px;
+    overflow-x: auto;
+  }
+
+  .side-toolbar button,
+  .side-toolbar a {
+    flex: 0 0 38px;
+  }
+
+  .side-toolbar span {
+    width: 1px;
+    height: 28px;
+    margin: 3px 2px;
+  }
+
   .topbar {
     align-items: flex-start;
     flex-wrap: wrap;
@@ -2497,6 +2559,7 @@ body {
 }
 
 .topbar,
+.side-toolbar,
 .crime-map-heading,
 .data-page-heading,
 .daily-command-section,
@@ -2517,6 +2580,22 @@ body {
 
 .topbar {
   background: rgba(9, 21, 30, 0.9);
+}
+
+.side-toolbar button,
+.side-toolbar a {
+  color: #8fa4b2;
+}
+
+.side-toolbar button:hover,
+.side-toolbar a:hover,
+.side-toolbar button.active {
+  color: #071018;
+  background: #8ee7cf;
+}
+
+.side-toolbar span {
+  background: rgba(142, 173, 193, 0.16);
 }
 
 .brand span,

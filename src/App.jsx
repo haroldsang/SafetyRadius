@@ -236,6 +236,12 @@ const FEATURE_GUIDE = [
     beginner: 'Start here. Choose one area first, then every other page follows that area.',
   },
   {
+    feature: 'Command Rail',
+    page: 'All pages',
+    purpose: 'Keeps the most common navigation and command actions available from the side toolbar.',
+    beginner: 'Use the icons to jump pages, copy the brief, reset filters, or open Google Maps.',
+  },
+  {
     feature: 'Command Brief',
     page: 'Today',
     purpose: 'Summarizes today\'s posture, priority geography, field action, and analyst handoff.',
@@ -1416,6 +1422,28 @@ function App() {
           <Bell size={19} />
         </button>
       </header>
+
+      <aside className="side-toolbar" aria-label="Command rail">
+        <button className={activePage === 'analysis' ? 'active' : ''} type="button" onClick={() => setActivePage('analysis')} title="Today brief" aria-label="Open Today brief">
+          <ShieldCheck size={18} />
+        </button>
+        <button className={activePage === 'data' ? 'active' : ''} type="button" onClick={() => setActivePage('data')} title="Analysis and data" aria-label="Open Analysis and Data">
+          <Layers size={18} />
+        </button>
+        <button className={activePage === 'terms' ? 'active' : ''} type="button" onClick={() => setActivePage('terms')} title="Terms guide" aria-label="Open Terms guide">
+          <Sparkles size={18} />
+        </button>
+        <span aria-hidden="true" />
+        <button type="button" onClick={copyAreaBrief} title="Copy shift brief" aria-label="Copy shift brief">
+          <Copy size={18} />
+        </button>
+        <button type="button" onClick={resetFilters} title="Reset filters" aria-label="Reset filters">
+          <Filter size={18} />
+        </button>
+        <a href={mapSearchUrl} target="_blank" rel="noreferrer" title="Open Google Maps" aria-label="Open selected area in Google Maps">
+          <ExternalLink size={18} />
+        </a>
+      </aside>
 
       {activePage === 'analysis' && (
       <>
