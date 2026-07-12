@@ -491,14 +491,14 @@ p {
 
 .today-priority-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
 .today-priority-grid button {
   display: grid;
   gap: 8px;
-  min-height: 174px;
+  min-height: 150px;
   border: 1px solid rgba(21, 32, 43, 0.09);
   border-radius: 8px;
   padding: 14px;
@@ -723,7 +723,7 @@ p {
 
 .officer-action-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin-top: 12px;
 }
@@ -876,19 +876,26 @@ p {
 .workflow-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 0;
   margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .workflow-strip article {
+  position: relative;
   display: grid;
-  grid-template-columns: 38px 1fr;
+  grid-template-columns: 34px 1fr;
   gap: 4px 10px;
   align-items: start;
-  border: 1px solid rgba(21, 32, 43, 0.08);
-  border-radius: 8px;
   padding: 12px;
-  background: #ffffff;
+  border-right: 1px solid rgba(21, 32, 43, 0.08);
+}
+
+.workflow-strip article:last-child {
+  border-right: 0;
 }
 
 .workflow-strip strong {
@@ -909,9 +916,9 @@ p {
 
 .workflow-strip p {
   color: #657380;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 750;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .workflow-strip small {
@@ -2275,10 +2282,6 @@ input:focus-visible {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .officer-action-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .analyst-method-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -2504,6 +2507,7 @@ body {
 .feature-guide-card,
 .today-priority-grid button,
 .officer-action-grid button,
+.workflow-strip,
 .workflow-strip article,
 .data-analysis-summary article,
 .source-catalog-grid article,

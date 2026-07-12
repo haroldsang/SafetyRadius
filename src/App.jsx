@@ -266,16 +266,16 @@ const FEATURE_GUIDE = [
     beginner: 'Follow this in order during a shift.',
   },
   {
-    feature: 'Priority Board',
+    feature: 'Decision Summary',
     page: 'Today',
-    purpose: 'Highlights the most urgent action cards for the current area.',
-    beginner: 'Click a card to jump toward the matching analysis view or map action.',
+    purpose: 'Shows the three decisions that matter before a shift starts: review, location, and source gate.',
+    beginner: 'Read this after the command brief; it tells you what deserves attention first.',
   },
   {
     feature: 'Action Queue',
     page: 'Today',
-    purpose: 'Lists field and command actions such as patrol focus, verify queue, and map handoff.',
-    beginner: 'Use this after reading the command brief.',
+    purpose: 'Lists concrete actions for patrol, verification, supervisor notice, and map handoff.',
+    beginner: 'Use this only after the decision summary, then click the action you need.',
   },
   {
     feature: 'Analyst Overview',
@@ -300,6 +300,12 @@ const FEATURE_GUIDE = [
     page: 'Analysis & Data',
     purpose: 'Shows the underlying normalized incident records with sorting, export, and map links.',
     beginner: 'Use this only when you need the raw records behind a conclusion.',
+  },
+  {
+    feature: 'Shift Workflow',
+    page: 'Today',
+    purpose: 'Explains the recommended order for triage, assignment, verification, and briefing.',
+    beginner: 'Use it as the simplest checklist when you are unsure what to do next.',
   },
   {
     feature: 'Crime Terms',
@@ -1059,7 +1065,7 @@ function App() {
 
   const todayPriorityItems = [
     {
-      label: 'Review now',
+      label: '1. Review gate',
       value: unreviewedHighCount ? `${unreviewedHighCount} high-priority` : 'No high backlog',
       text: unreviewedHighCount ? 'Open the high-severity queue before routine mapping work.' : 'Continue standard monitoring and source refresh checks.',
       action: () => {
@@ -1069,33 +1075,26 @@ function App() {
       icon: <Siren size={18} />,
     },
     {
-      label: 'Deploy attention',
-      value: primaryHotspot?.[0] || 'No repeat zone',
-      text: primaryHotspot ? `Focus the next watch window around ${primaryHotspot[0]}.` : 'No hotspot requires special deployment from current filters.',
+      label: '2. Place and time',
+      value: primaryHotspot?.[0] || peakBucket,
+      text: primaryHotspot ? `${primaryHotspot[0]} is the first place cue; ${peakBucket.toLowerCase()} is the strongest time cue.` : `${peakBucket} is the strongest time cue; no repeat zone is dominating.`,
       action: () => setReportQuery(primaryHotspot?.[0] || ''),
       icon: <MapPin size={18} />,
     },
     {
-      label: 'Watch window',
-      value: peakBucket,
-      text: `${peakBucket} has the strongest time signal in the current area.`,
-      action: () => setReportQuery(peakBucket),
-      icon: <Clock3 size={18} />,
-    },
-    {
-      label: 'Exception count',
-      value: `${activeExceptionCount} active`,
-      text: activeExceptionCount ? 'Review exception flags before approving the shift brief.' : 'No exception flag is above normal threshold.',
+      label: '3. Source gate',
+      value: activeExceptionCount ? `${activeExceptionCount} exceptions` : `${rtccReadiness}% ready`,
+      text: activeExceptionCount ? 'Resolve exception flags before approving the shift brief.' : 'Source quality is ready enough for routine briefing.',
       action: () => setActivePage('data'),
-      icon: <AlertTriangle size={18} />,
+      icon: <Layers size={18} />,
     },
   ]
 
   const dailyWorkflowSteps = [
-    { step: '1', title: 'Triage', text: 'Check high-severity and unreviewed records first.', status: unreviewedHighCount ? 'Action needed' : 'Clear' },
-    { step: '2', title: 'Assign', text: 'Send attention to the strongest hotspot and watch window.', status: primaryHotspot ? primaryHotspot[0] : 'No hotspot' },
-    { step: '3', title: 'Verify', text: 'Confirm source quality before using sensor-style alerts operationally.', status: `${rtccReadiness}% ready` },
-    { step: '4', title: 'Brief', text: 'Copy a concise shift brief or open the analysis workspace.', status: trendVerdict },
+    { step: '1', title: 'Triage', text: 'Review urgent and unreviewed records.', status: unreviewedHighCount ? 'Action needed' : 'Clear' },
+    { step: '2', title: 'Assign', text: 'Match place and time to staffing.', status: primaryHotspot ? primaryHotspot[0] : 'No hotspot' },
+    { step: '3', title: 'Verify', text: 'Check source quality and exceptions.', status: `${rtccReadiness}% ready` },
+    { step: '4', title: 'Brief', text: 'Copy or hand off the shift summary.', status: trendVerdict },
   ]
 
   const commandLenses = [
@@ -1180,25 +1179,11 @@ function App() {
       icon: <CheckCircle2 size={17} />,
     },
     {
-      label: 'Shift alert',
+      label: 'Supervisor note',
       value: activeExceptionCount ? `${activeExceptionCount} flags` : 'Normal',
       text: activeExceptionCount ? 'Notify supervisor that exception flags exist in the analysis workspace.' : 'No exception flag requires supervisory escalation.',
       action: () => setActivePage('data'),
       icon: <Bell size={17} />,
-    },
-    {
-      label: 'Area monitor',
-      value: peakBucket,
-      text: `Keep a watch posture during the ${peakBucket.toLowerCase()} activity window.`,
-      action: () => setReportQuery(peakBucket),
-      icon: <Clock3 size={17} />,
-    },
-    {
-      label: 'Brief note',
-      value: trendVerdict,
-      text: 'Copy the shift brief after confirming source readiness and priority area.',
-      action: copyAreaBrief,
-      icon: <Copy size={17} />,
     },
     {
       label: 'Map handoff',
@@ -1535,8 +1520,8 @@ function App() {
           ))}
         </div>
         <div className="module-title">
-          <span><AlertTriangle size={16} /> Priority board</span>
-          <h3>Today's most important items</h3>
+          <span><AlertTriangle size={16} /> Decision summary</span>
+          <h3>Three checks before the shift moves</h3>
         </div>
         <div className="today-priority-grid">
           {todayPriorityItems.map((item) => (
@@ -1562,7 +1547,7 @@ function App() {
         </div>
         <div className="module-title compact">
           <span><Route size={16} /> Shift workflow</span>
-          <h3>Recommended order of work</h3>
+          <h3>Guided shift flow for new and experienced users</h3>
         </div>
         <div className="workflow-strip">
           {dailyWorkflowSteps.map((item) => (
