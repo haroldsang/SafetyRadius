@@ -292,8 +292,8 @@ const FEATURE_GUIDE = [
   {
     feature: 'Multidimensional Analysis',
     page: 'Analysis & Data',
-    purpose: 'Breaks the current area into risk, place, time, offense, trend, and confidence lenses.',
-    beginner: 'Use one lens at a time; do not read every card as a separate alert.',
+    purpose: 'Maps common crime-analysis website methods to the current area: query, density, cycle, exception, temporal topology, and transparency.',
+    beginner: 'Use one method at a time; these are analysis tools, not separate alerts.',
   },
   {
     feature: 'Public Data Catalog',
@@ -1349,12 +1349,18 @@ function App() {
   ]
 
   const analystMethodCards = [
-    { label: 'Hotspot / density', value: primaryHotspot?.[0] || 'No hotspot', text: 'Prioritize repeated places and density cells before broad area conclusions.' },
+    { label: 'Attribute / proximity query', value: CITY_SOURCES[cityKey].label, text: 'Filter by city, category, severity, date, search text, and Google address context before drawing conclusions.' },
+    { label: 'Density / hotspot', value: primaryHotspot?.[0] || 'No hotspot', text: 'Prioritize repeated places and density cells before broad area conclusions.' },
     { label: 'Cyclical report', value: peakBucket, text: 'Compare repeat time bands for shift planning and recurring watch windows.' },
-    { label: 'Exception report', value: `${activeExceptionCount} active`, text: 'Flag changes, quality issues, and review backlogs before command briefings.' },
-    { label: 'Repeat location', value: `${repeatAreaCount} areas`, text: 'Separate persistent places from one-time events for problem-oriented follow-up.' },
-    { label: 'Spatial confidence', value: `${coordinateCoverage}% mapped`, text: 'Use geocoding coverage as a reliability gate for map-based conclusions.' },
-    { label: 'Source audit', value: `${averageFieldCompleteness}%`, text: 'Check field completeness before treating normalized categories as final findings.' },
+    { label: 'Exception report', value: `${activeExceptionCount} active`, text: 'Flag trend changes, quality issues, and review backlogs before command briefings.' },
+    { label: 'Temporal topology', value: selectedTrendWindow.label, text: 'Read volume by seven days, 28 days, quarter, six months, and year to separate spikes from durable patterns.' },
+    { label: 'Metadata transparency', value: `${averageFieldCompleteness}%`, text: 'Check field completeness, mapped coverage, source city, and official portal before treating normalized categories as final findings.' },
+  ]
+
+  const methodReferenceItems = [
+    { label: 'CrimeView-style', text: 'Query, density, cyclical, and exception reporting.' },
+    { label: 'RAIDS-style', text: 'Temporal chart, data grid, alerts, and metadata transparency.' },
+    { label: 'CompStat-style', text: 'Brief-ready trend review, accountability, and resource discussion.' },
   ]
 
   const analystChecklist = [
@@ -1697,6 +1703,14 @@ function App() {
               <strong>{method.value}</strong>
               <p>{method.text}</p>
             </article>
+          ))}
+        </div>
+        <div className="method-reference-strip" aria-label="Market pattern references">
+          {methodReferenceItems.map((item) => (
+            <span key={item.label}>
+              <strong>{item.label}</strong>
+              <small>{item.text}</small>
+            </span>
           ))}
         </div>
         <div className="analyst-checklist" aria-label="Analyst evidence checklist">

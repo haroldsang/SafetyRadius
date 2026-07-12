@@ -1097,6 +1097,34 @@ p {
   line-height: 1.35;
 }
 
+.method-reference-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.method-reference-strip span {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(21, 32, 43, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  background: #f7fafb;
+}
+
+.method-reference-strip strong {
+  color: #153f57;
+  font-size: 13px;
+}
+
+.method-reference-strip small {
+  color: #657380;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
 .analyst-checklist {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2337,6 +2365,10 @@ input:focus-visible {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .method-reference-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .analyst-checklist {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -2380,6 +2412,7 @@ input:focus-visible {
   .officer-action-grid,
   .command-lens-grid,
   .analyst-method-grid,
+  .method-reference-strip,
   .analyst-checklist,
   .cross-pressure-strip,
   .workflow-strip,
@@ -2509,6 +2542,7 @@ body {
 .module-title h3,
 .workflow-strip span,
 .feature-guide-card h3,
+.method-reference-strip strong,
 .terms-subheader h3,
 .term-card h3 {
   color: #f3f8fb;
@@ -2523,6 +2557,7 @@ body {
 .terms-header p,
 .data-analysis-summary p,
 .analyst-method-grid p,
+.method-reference-strip small,
 .analyst-checklist small,
 .operational-risk-matrix p,
 .accountability-grid p,
@@ -2553,6 +2588,7 @@ body {
 .cross-pressure-strip span,
 .data-analysis-summary span,
 .analyst-method-grid span,
+.method-reference-strip span,
 .analyst-checklist em,
 .operational-risk-matrix span,
 .accountability-grid span,
@@ -2586,6 +2622,7 @@ body {
 .shift-timeline-strip article,
 .command-lens-grid button,
 .analyst-method-grid article,
+.method-reference-strip span,
 .analyst-checklist span,
 .cross-pressure-strip article,
 .term-card,
